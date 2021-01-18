@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h1>{% block title %}Welcom to Crypto Tracker{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+  <form method="post">
+    <label for="api_key">API Key</label>
+    <input name="api_key" id="api_key" required>
+    <label for="api_secret">API Secret</label>
+    <input name="api_secret" id="api_secret" required>
+    <label for="passphrase">Passphrase</label>
+    <input name="passphrase" id="passphrase" required>
+    <input type="submit" value="Submit">
+  </form>
+{% endblock %}

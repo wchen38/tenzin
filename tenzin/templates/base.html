@@ -1,0 +1,13 @@
+<!doctype html>
+<title>{% block title %}{% endblock %} - Crypto Tracker</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<nav>
+    <p>This is the Navigation Bar</p>
+</nav>
+<section class="content">
+    <header>
+        {% block header %}{% endblock %}
+    </header>
+
+    {% block content %}{% endblock %}
+</section>
