@@ -71,7 +71,7 @@ def get_order_ids(acc_info):
                 }
 }
 '''
-def get_order_info(order_ids):
+def get_order_details(order_ids):
     orders = {}
     first_time = True
     for order_id in order_ids:
@@ -113,7 +113,7 @@ def main():
         os.makedirs('outputs')
     acc_id = get_acount_ids()
     order_ids = get_order_ids(acc_id)
-    order_details = get_order_info(order_ids)
+    order_details = get_order_details(order_ids)
     profits = calcuate_profit(order_details)
     print_json(profits)
 if __name__ == "__main__":
