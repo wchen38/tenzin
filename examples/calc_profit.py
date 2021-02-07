@@ -27,31 +27,34 @@ overall algorithm
 
 public_client = cbpro.PublicClient()
 
-api_url="https://api-public.sandbox.pro.coinbase.com" 
+api_url="https://api-public.sandbox.pro.coinbase.com"
 auth_client = cbpro.AuthenticatedClient(os.environ["API_KEY"], os.environ["CLIENT_SECRET"], os.environ["PASSPHARSE"], api_url=api_url)
+# auth_client = cbpro.AuthenticatedClient(os.environ["API_KEY"], os.environ["CLIENT_SECRET"], os.environ["PASSPHARSE"])
 
+# helping with debug the api
 def print_json(data):
     print(json.dumps(data, indent=4, sort_keys=True))
 
+# helping with debug the api
 def write_to_json(data, filename):
     with open('outputs/{}'.format(filename), 'w') as out:
         json.dump(data, out, indent=4, sort_keys=True)
 
 def get_acount_ids():
+    print("get account ids...", flush=True)
     accounts = auth_client.get_accounts()
-    id_info = {}
+    id_info = []
     # write_to_json(accounts)
     for account in accounts:
-        if float(account["balance"]) == 0.0:
-            continue
-        id_info[account["id"]] = {account["currency"]: float(account["balance"])}
-
+        id_info.append(account["id"])
     # print_json(id_info)
     return id_info
 
+# get the order ids from each account id
 def get_order_ids(acc_info):
+    print("get order ids...", flush=True)
     orders = []
-    for acc_id, balance in acc_info.items():
+    for acc_id in acc_info:
         time.sleep(1)
         his = auth_client.get_account_history(acc_id)
         his_list = list(his)
@@ -64,6 +67,8 @@ def get_order_ids(acc_info):
                     orders.append(order_id)
     return orders
 '''
+# from each order id, 
+# construct my own order detail to use later to  calculate profit
 {
     "BTC_USD": {
                     "invested": 5000
@@ -72,12 +77,17 @@ def get_order_ids(acc_info):
 }
 '''
 def get_order_details(order_ids):
+    print("get_order_details...", flush=True)
     orders = {}
     first_time = True
     for order_id in order_ids:
+        time.sleep(0.5)
         order_info = auth_client.get_order(order_id)
         # write_to_json(order_info, "get_order.json")
-        product_id = order_info["product_id"]
+        try:
+            product_id = order_info["product_id"]
+        except:
+            pdb.set_trace()
         invested = float(order_info["executed_value"])
         coins = float(order_info["filled_size"])
         if product_id not in orders.keys():
@@ -90,10 +100,11 @@ def get_order_details(order_ids):
     return orders
 
 def calcuate_profit(order_details):
+    print("calcuate profit...", flush=True)
     res = {}
     for product_id, detail in order_details.items():
         res[product_id] = {}
-        time.sleep(1)
+        time.sleep(0.5)
         stats = public_client.get_product_24hr_stats(product_id)
         if "last" in stats.keys():
             last = float(stats["last"])
