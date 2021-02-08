@@ -1,17 +1,83 @@
 {% extends 'base.html' %}
 
-{% block header %}
-  <h1>{% block title %}Welcom to Crypto Tracker{% endblock %}</h1>
-{% endblock %}
-
 {% block content %}
-  <form method="post">
-    <label for="api_key">API Key</label>
-    <input name="api_key" id="api_key" required>
-    <label for="api_secret">API Secret</label>
-    <input name="api_secret" id="api_secret" required>
-    <label for="passphrase">Passphrase</label>
-    <input name="passphrase" id="passphrase" required>
-    <input type="submit" value="Submit">
-  </form>
+  <div class="boxSize"></div>
+  <section id="main">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-3">
+            <form method="post" class="list-group" id="cbpro_form">
+              <li class="list-group-item active main-color-bg">API Information</li>
+              <li class="list-group-item">
+                <label for="api_key">API Key</label>
+                <input class="d-flex w-100 justify-content-between" name="api_key" id="api_key" required>
+              </li>
+              <li class="list-group-item">
+                <label for="client_secret">API Secret</label>
+                <input class="d-flex w-100 justify-content-between" name="client_secret" id="client_secret" required>
+              </li>
+              <li class="list-group-item">
+                <label for="passphrase">Passphrase</label>
+                <input class="d-flex w-100 justify-content-between" name="passphrase" id="passphrase" required>
+              </li>
+              <li class="list-group-item">
+                <input class="btn main-color-bg" type="submit" value="Submit">
+              </li>
+              
+          </form>
+        </div>
+        <div class="col-md-9" id="plot">
+          hello world
+          <div id="canvas"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+<script type=text/javascript>
+
+$( document ).ready(function() {
+console.log("hello world");
+
+  $('#cbpro_form').submit(function(e) {
+    e.preventDefault();
+    $.ajax({
+        url: '/',
+        data: $("#cbpro_form").serialize(),
+        type: 'POST',
+        success: function(data) {
+            console.log("Data from backend:" + JSON.stringify(data));
+            document.getElementById("cbpro_form").reset();
+            var para = document.createElement("p");
+            var node = document.createTextNode("This is new.");
+            para.appendChild(node);
+
+            var element = document.getElementById("plot");
+            element.appendChild(para);
+        }
+    });
+  });
+  let dataArray = [20, 40, 50, 50];
+  let width = 500;
+  let height = 500;
+
+  let canvas = d3.select("#canvas")
+                .append("svg")
+                .attr("width", width)
+                .attr("height", height)
+                .append("g")
+                .attr("transform", "translate(0, 0)");
+
+  let bars = canvas.selectAll("rect")
+              .data(dataArray)
+              .enter()
+                .append("rect")
+                .attr("width", function(d) {return d * 10})
+                .attr("height", 50)
+                .attr("y", function(d, i) {return i * 100});
+});
+
+
+
+</script>
 {% endblock %}
