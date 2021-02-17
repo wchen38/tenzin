@@ -3,7 +3,7 @@ from crypto_lib.api_interface import ApiInterface
 
 def main():
     print("hello world")
-    apiMgr = ApiManager.create_api("cbpro")
+    apiMgr = ApiManager.create_api("cbpro_fifo")
     apiMgr.getRealizedGain()
     apiMgr.getUnrealizedGain()
     apiMgr.getCryptoTax() 
