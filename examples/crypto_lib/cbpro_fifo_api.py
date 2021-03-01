@@ -16,8 +16,24 @@ class CbproFifoApi(ApiInterface):
         order_ids = utils.get_order_ids(self.__auth_client, acc_ids)
         # utils.get_order_details(self.__auth_client, order_ids)
         fills = utils.get_fills_order_details(self.__auth_client, order_ids)
-        res = self.__get_unrealized_gain(fills)
+
+        for product_id, fill_orders in fills.items():
+            crypto_balance = 0
+            index = 0
+
+            for fill_order in fill_orders:
+                side = fill_order["side"]
+                # calcuate the gain/loss once client makes a sale, else added up the
+                # accumulated crypto.
+                if side == "sell":
+                    expected_return = self.__calc_unrealized_gain(crypto_balance, fill_orders[:index+1])
+                    if product_id not in res:
+                        res[product_id] = {fill_order["created_at"]: expected_return}
+                else:
+                    crypto_balance += float(fill_order["size"])
+                index += 1
         print(res)
+        return res
 
     def get_crypto_tax(self):
         print("get crypto tax info...")
@@ -32,10 +48,7 @@ class CbproFifoApi(ApiInterface):
         for product_id, fill_orders in fills.items():
             crypto_balance = 0
             for fill_order in fill_orders:
-                try:
-                    side = fill_order["side"]
-                except:
-                    import pdb; pdb.set_trace()
+                side = fill_order["side"]
                 # calcuate the gain/loss once client makes a sale, else added up the
                 # accumulated crypto.
                 if side == "sell":
