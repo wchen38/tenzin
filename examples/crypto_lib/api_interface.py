@@ -2,13 +2,13 @@ from abc import ABC, abstractmethod
 
 class ApiInterface(ABC):
     @abstractmethod
-    def getRealizedGain(self):
+    def get_realized_gain(self):
         pass
 
     @abstractmethod
-    def getUnrealizedGain(self):
+    def get_unrealized_gain(self):
         pass
 
     @abstractmethod
-    def getCryptoTax(self):
+    def get_crypto_tax(self):
         pass

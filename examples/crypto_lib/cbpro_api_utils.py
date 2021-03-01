@@ -1,8 +1,17 @@
 import time
+import os
+import json
 
 # helping with debug the api
 def print_json(data):
     print(json.dumps(data, indent=4, sort_keys=True))
+
+# helping with debug the api
+def write_to_json(data, filename):
+    if not os.path.isdir("outputs"):
+        os.mkdir("outputs")
+    with open('outputs/{}'.format(filename), 'w') as out:
+        json.dump(data, out, indent=4, sort_keys=True)
 
 def get_acount_ids(client):
     print("get account ids...", flush=True)
@@ -40,6 +49,7 @@ def get_order_details(client, order_ids):
         time.sleep(0.5)
         order_info = client.get_order(order_id)
         # write_to_json(order_info, "get_order.json")
+        import pdb; pdb.set_trace()
         try:
             product_id = order_info["product_id"]
         except:
@@ -52,13 +62,21 @@ def get_order_details(client, order_ids):
             orders[product_id]["invested"] += invested
             orders[product_id]["coins"] += coins
 
-    # print_json(orders)
+    print_json(orders)
     return orders
 
-def get_fills_order_details(client):
-    import pdb; pdb.set_trace()
+def get_fills_order_details(client, order_ids):
     time.sleep(0.5)
-    # btc_fills = client.get_fills("BTC-USD")
-    btc_fills = client.get_fills("5d98cd72-ee60-454d-acd1-2276d11983fb")
-    print(list(btc_fills))
-    return orders
+    fills_map = {}
+    for order_id in reversed(order_ids):
+        # btc_fills = client.get_fills("BTC-USD")
+        # btc_fills = client.get_fills(order_id="5d98cd72-ee60-454d-acd1-2276d11983fb") #default portfolio
+        # btc_fills = client.get_fills(order_id="9cb91101-2ddf-4c71-9629-e6661f9ebb17") #tenzin testing portfolio
+        fills = list(client.get_fills(order_id=order_id))
+        product_id = fills[0]["product_id"]
+        if product_id not in fills_map:
+            fills_map[product_id] = []
+        fills_map[product_id].extend(fills)
+    # write_to_json(fills_map, "get_fills.json")
+
+    return fills_map
