@@ -9,6 +9,11 @@ class CbproWeightedApi(ApiInterface):
     def get_unrealized_gain(self):
         print("get unrealized gain...")
 
+    '''
+        {
+            "BTC_USD": {date: expected return} 
+        }
+    '''
     def get_realized_gain(self):
         print("get realized gain...")
         res = {}
@@ -19,9 +24,7 @@ class CbproWeightedApi(ApiInterface):
 
         for product_id, fill_orders in fills.items():
             crypto_balance = 0
-            index = 0
-
-            for fill_order in fill_orders:
+            for index, fill_order in enumerate(fill_orders):
                 side = fill_order["side"]
                 # calcuate the gain/loss once client makes a sale, else added up the
                 # accumulated crypto.
@@ -29,36 +32,15 @@ class CbproWeightedApi(ApiInterface):
                     expected_return = self.__calc_unrealized_gain(crypto_balance, fill_orders[:index+1])
                     if product_id not in res:
                         res[product_id] = {fill_order["created_at"]: expected_return}
+                    else:
+                        res[product_id].update({fill_order["created_at"]: expected_return})
                 else:
                     crypto_balance += float(fill_order["size"])
-                index += 1
-        print(res)
+        print("realized gain:\n{}".format(res))
         return res
 
     def get_crypto_tax(self):
         print("get crypto tax info...")
-    '''
-        {
-            "BTC_USD": {date: expected return} 
-        }
-    '''
-    def __get_unrealized_gain(self, fills):
-        res = {}
-        index = 0
-        for product_id, fill_orders in fills.items():
-            crypto_balance = 0
-            for fill_order in fill_orders:
-                side = fill_order["side"]
-                # calcuate the gain/loss once client makes a sale, else added up the
-                # accumulated crypto.
-                if side == "sell":
-                    expected_return = self.__calc_unrealized_gain(crypto_balance, fill_orders[:index+1])
-                    if product_id not in res:
-                        res[product_id] = {fill_order["created_at"]: expected_return}
-                else:
-                    crypto_balance += float(fill_order["size"])
-                index += 1
-        return res
 
     # calculate the unrealized gain/loss once client makes a sale
     def __calc_unrealized_gain(self, crypto_balance, sub_fills):
