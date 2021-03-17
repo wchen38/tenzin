@@ -1,10 +1,12 @@
-from crypto_lib.api_interface import ApiInterface
+# from crypto_lib.api_interface import ApiInterface
 import crypto_lib.cbpro_api_utils as utils
+import copy
 
-class CbproWeightedApi(ApiInterface):
+class CbproWeightedApi():
     def __init__(self, public_client, auth_client):
         self.__public_client = public_client
         self.__auth_client = auth_client
+        self.__workbook = {} 
 
     def get_unrealized_gain(self):
         print("get unrealized gain...")
@@ -30,14 +32,59 @@ class CbproWeightedApi(ApiInterface):
                 # accumulated crypto.
                 if side == "sell":
                     expected_return = self.__calc_unrealized_gain(crypto_balance, fill_orders[:index+1])
-                    if product_id not in res:
-                        res[product_id] = {fill_order["created_at"]: expected_return}
+                    if product_id not in self.__workbook:
+                        self.__workbook[product_id] = {fill_order["created_at"]: {"realized": expected_return}}
                     else:
-                        res[product_id].update({fill_order["created_at"]: expected_return})
+                        self.__workbook[product_id].update({fill_order["created_at"]: {"realized": expected_return}})
                 else:
                     crypto_balance += float(fill_order["size"])
-        print("realized gain:\n{}".format(res))
-        return res
+        print("realized gain:\n{}".format(self.__workbook))
+    
+    def get_avg_profit(self):
+        print("get average profit...")
+        if self.__workbook == {}:
+            print("Error: Needs to caluate the realized gain first!")
+            return
+        
+        for product_id, profit_records in self.__workbook.items():
+            profit_sum = 0
+            loss_sum = 0
+            profit_prob = 0
+            avg_profit = 0
+            avg_loss = 0
+            num_profit = 0
+            total_sales = 0
+            records_copy = copy.deepcopy(profit_records)
+            for date, record in records_copy.items():
+                gain = record["realized"]
+                total_sales += 1
+                if total_sales == 1:
+                    if gain > 0:
+                        num_profit = 1
+                        profit_sum = gain
+                        avg_profit = gain
+                        profit_records[date]["average_profit"] = gain
+                        profit_records[date]["average_loss"] = 0
+                        profit_records[date]["profit_probability"] = 1
+                    else:
+                        profit_loss = gain
+                        avg_loss = gain
+                        profit_records[date]["average_profit"] = 0
+                        profit_records[date]["average_loss"] = gain
+                        profit_records[date]["profit_probability"] = 0
+                else:
+                    if gain > 0:
+                        num_profit += 1
+                        profit_sum += gain
+                        avg_profit = profit_sum / num_profit
+                    else:
+                        loss_sum -= gain
+                        avg_loss = loss_sum / (total_sales - num_profit)
+                    profit_records["average_profit"] = avg_profit
+                    profit_records["average_loss"] = avg_loss
+                    profit_records["profit_probability"] = num_profit / total_sales
+        print(self.__workbook)
+
 
     def get_crypto_tax(self):
         print("get crypto tax info...")
