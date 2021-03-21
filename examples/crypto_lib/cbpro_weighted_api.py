@@ -25,19 +25,23 @@ class CbproWeightedApi():
         fills = utils.get_fills_order_details(self.__auth_client, order_ids)
 
         for product_id, fill_orders in fills.items():
-            crypto_balance = 0
+            start = 0 # start index of buy trasaction
+            crypto_balance = 0 # reset balance with a new crypto
             for index, fill_order in enumerate(fill_orders):
                 side = fill_order["side"]
                 # calcuate the gain/loss once client makes a sale, else added up the
                 # accumulated crypto.
                 if side == "sell":
-                    expected_return = self.__calc_unrealized_gain(crypto_balance, fill_orders[:index+1])
+                    expected_return = self.__calc_realized_gain(crypto_balance, fill_orders[start:index+1])
                     if product_id not in self.__workbook:
                         self.__workbook[product_id] = {fill_order["created_at"]: {"realized": expected_return}}
                     else:
                         self.__workbook[product_id].update({fill_order["created_at"]: {"realized": expected_return}})
+                    start = index+1 # start index of buy trasaction
+                    crypto_balance = 0 # reset balance after each sale
                 else:
                     crypto_balance += float(fill_order["size"])
+
         print("realized gain:\n{}".format(self.__workbook))
     
     def get_avg_profit(self):
@@ -45,7 +49,7 @@ class CbproWeightedApi():
         if self.__workbook == {}:
             print("Error: Needs to caluate the realized gain first!")
             return
-        
+
         for product_id, profit_records in self.__workbook.items():
             profit_sum = 0
             loss_sum = 0
@@ -80,29 +84,38 @@ class CbproWeightedApi():
                     else:
                         loss_sum -= gain
                         avg_loss = loss_sum / (total_sales - num_profit)
-                    profit_records["average_profit"] = avg_profit
-                    profit_records["average_loss"] = avg_loss
-                    profit_records["profit_probability"] = num_profit / total_sales
+                    profit_records[date]["average_profit"] = avg_profit
+                    profit_records[date]["average_loss"] = avg_loss
+                    profit_records[date]["profit_probability"] = num_profit / total_sales
         print(self.__workbook)
 
 
     def get_crypto_tax(self):
         print("get crypto tax info...")
-
+    
+    def __test_func(self):
+        return 1
     # calculate the unrealized gain/loss once client makes a sale
-    def __calc_unrealized_gain(self, crypto_balance, sub_fills):
+    def __calc_realized_gain(self, crypto_balance, sub_fills):
         total_expected_return = 0
-        for fill_order in sub_fills:
+        sell_info = sub_fills[-1]
+        sell_price = float(sell_info["price"])
+        sell_fee = float(sell_info["fee"])
+        try:
+            sell_volume = float(sell_info["usd_volume"])
+        except Exception:
+            print("Error: unhandled key in fill order: {}".format(sell_info))
+
+        for fill_order in sub_fills[:-1]:
             size = float(fill_order["size"]) # the amount of crypto you purchased or sold
-            settle_price = float(fill_order["price"]) # the price of the crypto
             try:
                 volume = float(fill_order["usd_volume"]) # amount of USD you spend to buy crypto
-            except:
+            except Exception:
                 print("Error: unhandled key in fill order: {}".format(fill_order))
             weight = size / crypto_balance
-            expected_return = size * settle_price / volume - 1 # percentage of individual return
+            expected_return = size * sell_price / volume - 1 # percentage of individual return
             total_expected_return += (weight * expected_return)
 
-        fee_percentage = float(fill_order["fee"]) / volume
-        total_expected_return = total_expected_return - fee_percentage
+        # fee_percentage = float(fill_order["fee"]) / sell_volume
+        # total_expected_return = total_expected_return - fee_percentage
         return total_expected_return
