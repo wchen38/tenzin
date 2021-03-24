@@ -1,16 +1,44 @@
 from crypto_lib.cbpro_weighted_api import CbproWeightedApi
 import pytest
+from unittest import mock
 
 # buy, sell
-fills1 = [{'created_at': '2021-03-02T06:21:08.79Z', 'trade_id': 25298423, 'product_id': 'BTC-USD', 'order_id': '502b3160-bc7e-4ee2-b261-d472311a682f', 'user_id': '5e16bbd6ec45e904d35370e5', 'profile_id': '744f9c7a-859e-4df8-9e61-62200ada11f5', 'liquidity': 'T', 'price': '34233', 'size': '0.145', 'fee': '25', 'side': 'buy', 'settled': True, 'usd_volume': '5000'}, {'created_at': '2021-03-01T05:43:05.399Z', 'trade_id': 25217298, 'product_id': 'BTC-USD', 'order_id': 'ed26f8f9-d75b-4758-8281-f9172090f3c3', 'user_id': '5e16bbd6ec45e904d35370e5', 'profile_id': '744f9c7a-859e-4df8-9e61-62200ada11f5', 'liquidity': 'T', 'price': '41017', 'size': '0.145', 'fee': '29.74', 'side': 'sell', 'settled': True, 'usd_volume': '5947.47'}]
+fill_1 = [{'created_at': '2021-03-01T06:21:08.79Z', 'trade_id': 1, 'product_id': 'BTC-USD', 'order_id': 'xxxx', 'user_id': 'xxx', 'profile_id': 'xxx', 'liquidity': 'T', 'price': '34233', 'size': '0.145', 'fee': '25', 'side': 'buy', 'settled': True, 'usd_volume': '4975'}, {'created_at': '2021-03-02T05:43:05.399Z', 'trade_id': 2, 'product_id': 'BTC-USD', 'order_id': 'xxx', 'user_id': 'xxxx', 'profile_id': 'xxx', 'liquidity': 'T', 'price': '41017', 'size': '0.145', 'fee': '29.74', 'side': 'sell', 'settled': True, 'usd_volume': '5917.73'}]
 
 # buy, buy, sell
-fills2 = [{'created_at': '2021-03-02T06:21:08.79Z', 'trade_id': 25298423, 'product_id': 'BTC-USD', 'order_id': '502b3160-bc7e-4ee2-b261-d472311a682f', 'user_id': '5e16bbd6ec45e904d35370e5', 'profile_id': '744f9c7a-859e-4df8-9e61-62200ada11f5', 'liquidity': 'T', 'price': '33262', 'size': '0.177', 'fee': '29.59', 'side': 'buy', 'settled': True, 'usd_volume': '5917.73'}, {'created_at': '2021-03-02T06:21:08.79Z', 'trade_id': 25298423, 'product_id': 'BTC-USD', 'order_id': '502b3160-bc7e-4ee2-b261-d472311a682f', 'user_id': '5e16bbd6ec45e904d35370e5', 'profile_id': '744f9c7a-859e-4df8-9e61-62200ada11f5', 'liquidity': 'T', 'price': '34345', 'size': '0.290', 'fee': '50', 'side': 'buy', 'settled': True, 'usd_volume': '10000'},{'created_at': '2021-03-01T05:43:05.399Z', 'trade_id': 25217298, 'product_id': 'BTC-USD', 'order_id': 'ed26f8f9-d75b-4758-8281-f9172090f3c3', 'user_id': '5e16bbd6ec45e904d35370e5', 'profile_id': '744f9c7a-859e-4df8-9e61-62200ada11f5', 'liquidity': 'T', 'price': '39220', 'size': '0.467', 'fee': '91.53', 'side': 'sell', 'settled': True, 'usd_volume': '18305.17'}]
+fill_2 = [{'created_at': '2021-03-03T06:21:08.79Z', 'trade_id': 3, 'product_id': 'BTC-USD', 'order_id': 'xxx', 'user_id': 'xxx', 'profile_id': 'xxx', 'liquidity': 'T', 'price': '33262', 'size': '0.177', 'fee': '29.59', 'side': 'buy', 'settled': True, 'usd_volume': '5888.14'}, {'created_at': '2021-04-02T06:21:08.79Z', 'trade_id': 4, 'product_id': 'BTC-USD', 'order_id': 'xxx', 'user_id': 'xxx', 'profile_id': 'xxx', 'liquidity': 'T', 'price': '34345', 'size': '0.290', 'fee': '50', 'side': 'buy', 'settled': True, 'usd_volume': '9950'},{'created_at': '2021-03-05T05:43:05.399Z', 'trade_id': 5, 'product_id': 'BTC-USD', 'order_id': 'xxx', 'user_id': 'xxx', 'profile_id': 'xxx', 'liquidity': 'T', 'price': '39220', 'size': '0.467', 'fee': '91.53', 'side': 'sell', 'settled': True, 'usd_volume': '15213.64'}]
+
+fill_3 = [{'created_at': '2021-03-06T06:21:08.79Z', 'trade_id': 6, 'product_id': 'BTC-USD', 'order_id': 'xxxx', 'user_id': 'xxx', 'profile_id': 'xxx', 'liquidity': 'T', 'price': '34866', 'size': '0.519', 'fee': '90.92', 'side': 'buy', 'settled': True, 'usd_volume': '18092.41'}, {'created_at': '2021-03-02T07:43:05.399Z', 'trade_id': 7, 'product_id': 'BTC-USD', 'order_id': 'xxx', 'user_id': 'xxxx', 'profile_id': 'xxx', 'liquidity': 'T', 'price': '33706', 'size': '0.519', 'fee': '87.45', 'side': 'sell', 'settled': True, 'usd_volume': '17315.57'}]
+
+fill_4 = [{'created_at': '2021-03-08T06:21:08.79Z', 'trade_id': 6, 'product_id': 'BTC-USD', 'order_id': 'xxxx', 'user_id': 'xxx', 'profile_id': 'xxx', 'liquidity': 'T', 'price': '29010', 'size': '0.598', 'fee': '87.22', 'side': 'buy', 'settled': True, 'usd_volume': '17357.05'}, {'created_at': '2021-03-09T07:43:05.399Z', 'trade_id': 7, 'product_id': 'BTC-USD', 'order_id': 'xxx', 'user_id': 'xxxx', 'profile_id': 'xxx', 'liquidity': 'T', 'price': '35978', 'size': '0.598', 'fee': '107.63', 'side': 'sell', 'settled': True, 'usd_volume': '21418.46'}]
+
+fills = {}
+fills["BTC-USD"] = []
+fills["BTC-USD"].extend(fill_1)
+fills["BTC-USD"].extend(fill_2)
+fills["BTC-USD"].extend(fill_3)
+fills["BTC-USD"].extend(fill_4)
+
+@mock.patch("crypto_lib.cbpro_weighted_api.utils.get_fills_order_details")
+@mock.patch("crypto_lib.cbpro_weighted_api.utils.get_acount_ids")
+@mock.patch("crypto_lib.cbpro_weighted_api.utils.get_order_ids")
+def test_get_realized_gain(mock_get_order_ids, mock_get_account_ids, mock_get_fills):
+    mock_get_fills.return_value = fills
+    mock_get_account_ids = ""
+    mock_get_order_ids = ""
+    fake_public_clent = ""
+    fake_auth_client = ""
+    api = CbproWeightedApi(fake_public_clent, fake_auth_client)
+
+    api.get_realized_gain()
+    api.get_avg_profit()
+    assert api.workbook["BTC-USD"]['2021-03-09T07:43:05.399Z']['profit_probability'] == pytest.approx(0.75, 0.1)
+
 
 @pytest.mark.parametrize("balance, fills, result",
                             [
-                                (0.145, fills1, 0.1894),
-                                (0.467, fills2, 0.1453)
+                                (0.145, fill_1, 0.19),
+                                (0.467, fill_2, 0.145)
                             ])
 def test_calc_realized_gain(balance, fills, result):
     fake_public_clent = ""
@@ -18,4 +46,4 @@ def test_calc_realized_gain(balance, fills, result):
     api = CbproWeightedApi(fake_public_clent, fake_auth_client)
 
     res = api._CbproWeightedApi__calc_realized_gain(balance, fills)
-    assert res == pytest.approx(res, 0.1)
+    assert res == pytest.approx(result, 0.1)

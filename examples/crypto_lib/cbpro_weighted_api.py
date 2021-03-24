@@ -6,7 +6,7 @@ class CbproWeightedApi():
     def __init__(self, public_client, auth_client):
         self.__public_client = public_client
         self.__auth_client = auth_client
-        self.__workbook = {} 
+        self.workbook = {} 
 
     def get_unrealized_gain(self):
         print("get unrealized gain...")
@@ -32,25 +32,24 @@ class CbproWeightedApi():
                 # calcuate the gain/loss once client makes a sale, else added up the
                 # accumulated crypto.
                 if side == "sell":
+                    utils.write_to_json(fill_orders, "fill_orders.json")
                     expected_return = self.__calc_realized_gain(crypto_balance, fill_orders[start:index+1])
-                    if product_id not in self.__workbook:
-                        self.__workbook[product_id] = {fill_order["created_at"]: {"realized": expected_return}}
+                    if product_id not in self.workbook:
+                        self.workbook[product_id] = {fill_order["created_at"]: {"realized": expected_return}}
                     else:
-                        self.__workbook[product_id].update({fill_order["created_at"]: {"realized": expected_return}})
+                        self.workbook[product_id].update({fill_order["created_at"]: {"realized": expected_return}})
                     start = index+1 # start index of buy trasaction
                     crypto_balance = 0 # reset balance after each sale
                 else:
                     crypto_balance += float(fill_order["size"])
 
-        print("realized gain:\n{}".format(self.__workbook))
-    
     def get_avg_profit(self):
         print("get average profit...")
-        if self.__workbook == {}:
+        if self.workbook == {}:
             print("Error: Needs to caluate the realized gain first!")
             return
 
-        for product_id, profit_records in self.__workbook.items():
+        for product_id, profit_records in self.workbook.items():
             profit_sum = 0
             loss_sum = 0
             profit_prob = 0
@@ -87,7 +86,7 @@ class CbproWeightedApi():
                     profit_records[date]["average_profit"] = avg_profit
                     profit_records[date]["average_loss"] = avg_loss
                     profit_records[date]["profit_probability"] = num_profit / total_sales
-        print(self.__workbook)
+        print(self.workbook)
 
 
     def get_crypto_tax(self):
@@ -102,20 +101,21 @@ class CbproWeightedApi():
         sell_price = float(sell_info["price"])
         sell_fee = float(sell_info["fee"])
         try:
-            sell_volume = float(sell_info["usd_volume"])
+            sell_amount = float(sell_info["usd_volume"]) + sell_fee
         except Exception:
             print("Error: unhandled key in fill order: {}".format(sell_info))
 
         for fill_order in sub_fills[:-1]:
             size = float(fill_order["size"]) # the amount of crypto you purchased or sold
+            buy_fee = float(fill_order["fee"])
             try:
-                volume = float(fill_order["usd_volume"]) # amount of USD you spend to buy crypto
+                buy_amount = float(fill_order["usd_volume"]) + buy_fee # amount of USD you spend to buy crypto
             except Exception:
                 print("Error: unhandled key in fill order: {}".format(fill_order))
             weight = size / crypto_balance
-            expected_return = size * sell_price / volume - 1 # percentage of individual return
+            expected_return = size * sell_price / buy_amount - 1 # percentage of individual return
             total_expected_return += (weight * expected_return)
 
-        # fee_percentage = float(fill_order["fee"]) / sell_volume
-        # total_expected_return = total_expected_return - fee_percentage
+        fee_percentage = sell_fee / sell_amount
+        total_expected_return = total_expected_return - fee_percentage
         return total_expected_return
