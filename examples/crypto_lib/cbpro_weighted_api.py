@@ -90,12 +90,9 @@ class CbproWeightedApi():
                 profit_records[date]["appt"] = avg_profit * profit_prob + avg_loss *(1 - profit_prob)
         print(self.workbook)
 
-
     def get_crypto_tax(self):
         print("get crypto tax info...")
-    
-    def __test_func(self):
-        return 1
+
     # calculate the unrealized gain/loss once client makes a sale
     def __calc_realized_gain(self, crypto_balance, sub_fills):
         total_expected_return = 0
