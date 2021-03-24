@@ -8,16 +8,18 @@ fill_1 = [{'created_at': '2021-03-01T06:21:08.79Z', 'trade_id': 1, 'product_id':
 # buy, buy, sell
 fill_2 = [{'created_at': '2021-03-03T06:21:08.79Z', 'trade_id': 3, 'product_id': 'BTC-USD', 'order_id': 'xxx', 'user_id': 'xxx', 'profile_id': 'xxx', 'liquidity': 'T', 'price': '33262', 'size': '0.177', 'fee': '29.59', 'side': 'buy', 'settled': True, 'usd_volume': '5888.14'}, {'created_at': '2021-04-02T06:21:08.79Z', 'trade_id': 4, 'product_id': 'BTC-USD', 'order_id': 'xxx', 'user_id': 'xxx', 'profile_id': 'xxx', 'liquidity': 'T', 'price': '34345', 'size': '0.290', 'fee': '50', 'side': 'buy', 'settled': True, 'usd_volume': '9950'},{'created_at': '2021-03-05T05:43:05.399Z', 'trade_id': 5, 'product_id': 'BTC-USD', 'order_id': 'xxx', 'user_id': 'xxx', 'profile_id': 'xxx', 'liquidity': 'T', 'price': '39220', 'size': '0.467', 'fee': '91.53', 'side': 'sell', 'settled': True, 'usd_volume': '15213.64'}]
 
-fill_3 = [{'created_at': '2021-03-06T06:21:08.79Z', 'trade_id': 6, 'product_id': 'BTC-USD', 'order_id': 'xxxx', 'user_id': 'xxx', 'profile_id': 'xxx', 'liquidity': 'T', 'price': '34866', 'size': '0.519', 'fee': '90.92', 'side': 'buy', 'settled': True, 'usd_volume': '18092.41'}, {'created_at': '2021-03-02T07:43:05.399Z', 'trade_id': 7, 'product_id': 'BTC-USD', 'order_id': 'xxx', 'user_id': 'xxxx', 'profile_id': 'xxx', 'liquidity': 'T', 'price': '33706', 'size': '0.519', 'fee': '87.45', 'side': 'sell', 'settled': True, 'usd_volume': '17315.57'}]
+fill_3 = [{'created_at': '2021-03-06T06:21:08.79Z', 'trade_id': 6, 'product_id': 'BTC-USD', 'order_id': 'xxxx', 'user_id': 'xxx', 'profile_id': 'xxx', 'liquidity': 'T', 'price': '34866', 'size': '0.519', 'fee': '90.92', 'side': 'buy', 'settled': True, 'usd_volume': '18092.41'}, {'created_at': '2021-03-07T07:43:05.399Z', 'trade_id': 7, 'product_id': 'BTC-USD', 'order_id': 'xxx', 'user_id': 'xxxx', 'profile_id': 'xxx', 'liquidity': 'T', 'price': '33706', 'size': '0.519', 'fee': '87.45', 'side': 'sell', 'settled': True, 'usd_volume': '17315.57'}]
 
 fill_4 = [{'created_at': '2021-03-08T06:21:08.79Z', 'trade_id': 6, 'product_id': 'BTC-USD', 'order_id': 'xxxx', 'user_id': 'xxx', 'profile_id': 'xxx', 'liquidity': 'T', 'price': '29010', 'size': '0.598', 'fee': '87.22', 'side': 'buy', 'settled': True, 'usd_volume': '17357.05'}, {'created_at': '2021-03-09T07:43:05.399Z', 'trade_id': 7, 'product_id': 'BTC-USD', 'order_id': 'xxx', 'user_id': 'xxxx', 'profile_id': 'xxx', 'liquidity': 'T', 'price': '35978', 'size': '0.598', 'fee': '107.63', 'side': 'sell', 'settled': True, 'usd_volume': '21418.46'}]
 
+fill_5 = [{'created_at': '2021-03-10T06:21:08.79Z', 'trade_id': 6, 'product_id': 'BTC-USD', 'order_id': 'xxxx', 'user_id': 'xxx', 'profile_id': 'xxx', 'liquidity': 'T', 'price': '33819', 'size': '0.63', 'fee': '107.09', 'side': 'buy', 'settled': True, 'usd_volume': '21311.37'}, {'created_at': '2021-03-11T07:43:05.399Z', 'trade_id': 7, 'product_id': 'BTC-USD', 'order_id': 'xxx', 'user_id': 'xxxx', 'profile_id': 'xxx', 'liquidity': 'T', 'price': '37912', 'size': '0.4', 'fee': '43.63', 'side': 'sell', 'settled': True, 'usd_volume': '15121.17'}]
 fills = {}
 fills["BTC-USD"] = []
 fills["BTC-USD"].extend(fill_1)
 fills["BTC-USD"].extend(fill_2)
 fills["BTC-USD"].extend(fill_3)
 fills["BTC-USD"].extend(fill_4)
+fills["BTC-USD"].extend(fill_5)
 
 @mock.patch("crypto_lib.cbpro_weighted_api.utils.get_fills_order_details")
 @mock.patch("crypto_lib.cbpro_weighted_api.utils.get_acount_ids")

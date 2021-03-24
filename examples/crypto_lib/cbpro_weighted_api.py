@@ -52,7 +52,6 @@ class CbproWeightedApi():
         for product_id, profit_records in self.workbook.items():
             profit_sum = 0
             loss_sum = 0
-            profit_prob = 0
             avg_profit = 0
             avg_loss = 0
             num_profit = 0
@@ -63,6 +62,7 @@ class CbproWeightedApi():
                 total_sales += 1
                 if total_sales == 1:
                     if gain > 0:
+                        profit_prob = 1
                         num_profit = 1
                         profit_sum = gain
                         avg_profit = gain
@@ -73,7 +73,7 @@ class CbproWeightedApi():
                         profit_loss = gain
                         avg_loss = gain
                         profit_records[date]["average_profit"] = 0
-                        profit_records[date]["average_loss"] = gain
+                        profit_records[date]["average_loss"] = -gain
                         profit_records[date]["profit_probability"] = 0
                 else:
                     if gain > 0:
@@ -81,11 +81,13 @@ class CbproWeightedApi():
                         profit_sum += gain
                         avg_profit = profit_sum / num_profit
                     else:
-                        loss_sum -= gain
+                        loss_sum += gain
                         avg_loss = loss_sum / (total_sales - num_profit)
                     profit_records[date]["average_profit"] = avg_profit
                     profit_records[date]["average_loss"] = avg_loss
                     profit_records[date]["profit_probability"] = num_profit / total_sales
+                profit_prob = profit_records[date]["profit_probability"]
+                profit_records[date]["appt"] = avg_profit * profit_prob + avg_loss *(1 - profit_prob)
         print(self.workbook)
 
 
