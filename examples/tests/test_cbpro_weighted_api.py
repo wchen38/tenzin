@@ -33,8 +33,8 @@ def test_get_realized_gain(mock_get_order_ids, mock_get_account_ids, mock_get_fi
     api = CbproWeightedApi(fake_public_clent, fake_auth_client)
 
     api.get_realized_gain()
-    api.get_avg_profit()
-    assert api.workbook["BTC-USD"]['2021-03-09T07:43:05.399Z']['profit_probability'] == pytest.approx(0.75, 0.1)
+    api.get_appt()
+    assert api.workbook["BTC-USD"]['2021-03-09T07:43:05.399Z']['appt'] == pytest.approx(0.1279, 0.1)
 
 
 @pytest.mark.parametrize("balance, fills, result",

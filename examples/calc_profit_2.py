@@ -10,7 +10,7 @@ def main():
 
     weighted_api = CbproWeightedApi(public_client, auth_client)
     weighted_api.get_realized_gain()
-    weighted_api.get_avg_profit()
+    weighted_api.get_appt()
 
 if __name__ == "__main__":
     main()

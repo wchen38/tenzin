@@ -42,52 +42,46 @@ class CbproWeightedApi():
                     crypto_balance = 0 # reset balance after each sale
                 else:
                     crypto_balance += float(fill_order["size"])
-
-    def get_avg_profit(self):
-        print("get average profit...")
+    
+    # For reference
+    # https://www.investopedia.com/terms/p/profit_loss_ratio.asp#:~:text=APPT%20is%20the%20average%20amount,profitable%20and%20seven%20were%20losing.
+    # since avg_loss is a negative value to compute APPT, we would add A and B, where
+    # A is the the product of the probability win and average win 
+    # B is the product of the probability of loss and average loss
+    def get_appt(self):
+        print("get average profitability per trade...")
         if self.workbook == {}:
             print("Error: Needs to caluate the realized gain first!")
             return
 
         for product_id, profit_records in self.workbook.items():
-            profit_sum = 0
-            loss_sum = 0
-            avg_profit = 0
-            avg_loss = 0
             num_profit = 0
+            profit_sum = 0
+            profit_prob = 0
+            avg_win = 0
+            
+            loss_sum = 0
+            avg_loss = 0
+            
             total_sales = 0
+            
             records_copy = copy.deepcopy(profit_records)
             for date, record in records_copy.items():
                 gain = record["realized"]
                 total_sales += 1
-                if total_sales == 1:
-                    if gain > 0:
-                        profit_prob = 1
-                        num_profit = 1
-                        profit_sum = gain
-                        avg_profit = gain
-                        profit_records[date]["average_profit"] = gain
-                        profit_records[date]["average_loss"] = 0
-                        profit_records[date]["profit_probability"] = 1
-                    else:
-                        profit_loss = gain
-                        avg_loss = gain
-                        profit_records[date]["average_profit"] = 0
-                        profit_records[date]["average_loss"] = -gain
-                        profit_records[date]["profit_probability"] = 0
+                if gain > 0:
+                    num_profit += 1
+                    profit_sum += gain
+                    avg_win = profit_sum / num_profit
                 else:
-                    if gain > 0:
-                        num_profit += 1
-                        profit_sum += gain
-                        avg_profit = profit_sum / num_profit
-                    else:
-                        loss_sum += gain
-                        avg_loss = loss_sum / (total_sales - num_profit)
-                    profit_records[date]["average_profit"] = avg_profit
-                    profit_records[date]["average_loss"] = avg_loss
-                    profit_records[date]["profit_probability"] = num_profit / total_sales
-                profit_prob = profit_records[date]["profit_probability"]
-                profit_records[date]["appt"] = avg_profit * profit_prob + avg_loss *(1 - profit_prob)
+                    loss_sum += gain
+                    avg_loss = loss_sum / (total_sales - num_profit)
+
+                profit_records[date]["average_profit"] = avg_win
+                profit_records[date]["average_loss"] = avg_loss
+                profit_prob = num_profit / total_sales
+                profit_records[date]["profit_probability"] = profit_prob
+                profit_records[date]["appt"] = avg_win * profit_prob + avg_loss * (1 - profit_prob)
         print(self.workbook)
 
     def get_crypto_tax(self):
