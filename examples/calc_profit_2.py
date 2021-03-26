@@ -1,5 +1,10 @@
 import cbpro
 import os
+import sys, os.path
+tenzin_dir = (os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
++ '/tenzin/')
+sys.path.append(tenzin_dir)
+# from crypto_lib.cbpro_weighted_api import CbproWeightedApi
 from crypto_lib.cbpro_weighted_api import CbproWeightedApi
 
 def main():

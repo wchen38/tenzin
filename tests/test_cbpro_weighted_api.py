@@ -1,4 +1,4 @@
-from crypto_lib.cbpro_weighted_api import CbproWeightedApi
+from tenzin.crypto_lib.cbpro_weighted_api import CbproWeightedApi
 import pytest
 from unittest import mock
 
@@ -21,9 +21,9 @@ fills["BTC-USD"].extend(fill_3)
 fills["BTC-USD"].extend(fill_4)
 fills["BTC-USD"].extend(fill_5)
 
-@mock.patch("crypto_lib.cbpro_weighted_api.utils.get_fills_order_details")
-@mock.patch("crypto_lib.cbpro_weighted_api.utils.get_acount_ids")
-@mock.patch("crypto_lib.cbpro_weighted_api.utils.get_order_ids")
+@mock.patch("tenzin.crypto_lib.cbpro_weighted_api.utils.get_fills_order_details")
+@mock.patch("tenzin.crypto_lib.cbpro_weighted_api.utils.get_acount_ids")
+@mock.patch("tenzin.crypto_lib.cbpro_weighted_api.utils.get_order_ids")
 def test_get_realized_gain(mock_get_order_ids, mock_get_account_ids, mock_get_fills):
     mock_get_fills.return_value = fills
     mock_get_account_ids = ""

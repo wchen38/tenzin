@@ -1,5 +1,4 @@
-# from crypto_lib.api_interface import ApiInterface
-import crypto_lib.cbpro_api_utils as utils
+import tenzin.crypto_lib.cbpro_api_utils as utils
 import copy
 
 class CbproWeightedApi():
