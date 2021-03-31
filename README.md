@@ -8,18 +8,21 @@ for Linux and Mac:
 ```
 export FLASK_APP=tenzin
 export FLASK_ENV=development
+export CONFIG_SETUP="config_default.Development"
 flask run
 ```
 For Windows cmd, use set instead of export:
 ```
 set FLASK_APP=tenzin
 set FLASK_ENV=development
+set CONFIG_SETUP="config_default.Development"
 flask run
 ```
 For Windows PowerShell, use env: instead of export:
 ```
 env:FLASK_APP = "tenzin"
 env:FLASK_ENV = "development"
+env:CONFIG_SETUP="config_default.Development"
 flask run
 ```
 

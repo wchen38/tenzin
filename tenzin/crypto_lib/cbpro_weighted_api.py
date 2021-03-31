@@ -5,7 +5,19 @@ class CbproWeightedApi():
     def __init__(self, public_client, auth_client):
         self.__public_client = public_client
         self.__auth_client = auth_client
-        self.workbook = {} 
+        self.workbook = {}
+
+    def is_valid_account(self):
+        is_valid = True
+        try:
+            acc_ids = utils.get_acount_ids(self.__auth_client)
+            if type(acc_ids) is dict:
+                is_valid = False
+        except Exception:
+            is_valid = False
+
+        return is_valid
+
 
     def get_unrealized_gain(self):
         print("get unrealized gain...")
