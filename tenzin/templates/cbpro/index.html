@@ -6,7 +6,7 @@
     <div class="container">
       <div class="row">
         <div class="col-md-3">
-            <form method="post" class="list-group" id="cbpro_form">
+            <form method="post" action="{{ url_for('cbpro.index_post') }}" class="list-group" id="cbpro_form">
               <li class="list-group-item active main-color-bg">API Information</li>
               <li class="list-group-item">
                 <label for="api_key">API Key</label>
@@ -21,14 +21,18 @@
                 <input class="d-flex w-100 justify-content-between" name="passphrase" id="passphrase" required>
               </li>
               <li class="list-group-item">
-                <input class="btn main-color-bg" type="submit" value="Submit">
+                <input class="btn main-color-bg" id="submit" type="submit" value="Submit">
               </li>
               
           </form>
         </div>
-        <div class="col-md-9" id="plot">
-          hello world
-          <div id="canvas"></div>
+        <div id="table_area">
+          <div id="stats_summary_section"></div>
+          <div class="boxSize"></div>
+          <div class="boxSize"></div>
+          <div class="boxSize"></div>
+          <div id="stats_detail_section"></div>
+        </div>
         </div>
       </div>
     </div>
@@ -37,47 +41,108 @@
 <script type=text/javascript>
 
 $( document ).ready(function() {
-console.log("hello world");
-
-  $('#cbpro_form').submit(function(e) {
-    e.preventDefault();
-    $.ajax({
-        url: '/',
-        data: $("#cbpro_form").serialize(),
-        type: 'POST',
-        success: function(data) {
-            console.log("Data from backend:" + JSON.stringify(data));
-            document.getElementById("cbpro_form").reset();
-            var para = document.createElement("p");
-            var node = document.createTextNode("This is new.");
-            para.appendChild(node);
-
-            var element = document.getElementById("plot");
-            element.appendChild(para);
-        }
-    });
+  $('#submit').click(function(){
+    if(is_input_filled("#cbpro_form", '[required]')) {
+      console.log("loading......");
+      $("#table_area").text("loading... (Will take about 5 to 10 mins if you have a lot of trades)");
+    }
   });
-  let dataArray = [20, 40, 50, 50];
-  let width = 500;
-  let height = 500;
 
-  let canvas = d3.select("#canvas")
-                .append("svg")
-                .attr("width", width)
-                .attr("height", height)
-                .append("g")
-                .attr("transform", "translate(0, 0)");
+  $("body").on("click", ".tr_button", function () {
+    // highlight the selected row
+    let active = "active_row";
+    $('.tr_button').removeClass(active);
+    $(this).addClass(active);
 
-  let bars = canvas.selectAll("rect")
-              .data(dataArray)
-              .enter()
-                .append("rect")
-                .attr("width", function(d) {return d * 10})
-                .attr("height", 50)
-                .attr("y", function(d, i) {return i * 100});
-});
+    // gets all the cells within the parent and get the
+    // product name in the first cell
+    let row_vals = $(this).find('>td');
+    //console.log(row_vals);
+    let product = row_vals[0].textContent;
+    
+    let detail_table = $("#portfolio_detail_table > tbody > tr").find('>td');
+    //console.log(detail_table.length == 0);
+    // decide when to hide or show detail portfolio
+    if(detail_table.length != 0) {
+      let prev_product = detail_table[0].textContent;
+      togggle_table_display(product, prev_product, '#stats_detail_section');
+    }
+    // create a new table to display the detail portfolio
+    let detail_html = create_portfolio_detail(flask_var.cbpro, product);
+    $('#stats_detail_section').html(detail_html);
+    $('#portfolio_detail_table').dataTable();
+  });
 
+  let flask_var = {{ flask_var|tojson }};
+  console.log(flask_var.message[0]);
+  if (flask_var.cbpro !== null) {
+    //console.log(flask_var.cbpro);
+    //create a new table to display the summary portfolio
+    let summary_html = create_portfolio_summary(flask_var.cbpro);
+    $('#stats_summary_section').html(summary_html);
+    $("#portfolio_summary_table").dataTable();
 
+  }
+  function create_portfolio_summary(table_info) {
+    let table_html = '<table class=table_hover id="portfolio_summary_table"> \
+                        <thead><tr> \
+                          <th>Product</th><th>Date</th><th>Realized Gain/Loss</th><th>APPT</th> \
+                        </tr></thead><tbody>';
+    for (let [product_id, records] of Object.entries(table_info)) {
+      let latest_date = Object.keys(records).pop();
+      let latest_record = records[latest_date]
+      table_html += '<tr class="tr_button">'
+            + '<td>' + product_id + '</td>'
+            + '<td>' + latest_date + '</td>'
+            + '<td>' + latest_record.realized + '</td>'
+            + '<td>' + latest_record.appt + '</td>'
+            + '</tr>';
+    }
+    table_html += '</tbody></table>';
+    return table_html;
+  }
 
+  function create_portfolio_detail(table_info, selected_product) {
+    let table_html = '<table id="portfolio_detail_table"> \
+                        <thead><tr> \
+                          <th>Product</th><th>Date</th><th>Realized Gain/Loss</th><th>APPT</th> \
+                        </tr></thead><tbody>';
+    for (let [product, records] of Object.entries(table_info)) {
+      if(product == selected_product) {
+        for (let [date, record] of Object.entries(records)) {
+          table_html += '<tr>'
+                      + '<td>' + product + '</td>'
+                      + '<td>' + date + '</td>'
+                      + '<td>' + record.realized + '</td>'
+                      + '<td>' + record.appt + '</td>'
+                      + '</tr>';
+        }
+      }
+
+    }
+    table_html += '</tbody></table>';
+    return table_html;
+  }
+
+  function is_input_filled(selector, filter) {
+    $(selector).filter(filter).each(function() {
+      if($(this).val() === '') {
+        return false;
+      }
+    });
+    return true;
+  }
+
+  function togggle_table_display(product, prev_product, selector) {
+    let is_visible = $(selector).is(':visible');
+    if(prev_product == product && is_visible) {
+      $(selector).hide();
+      $('.tr_button').removeClass("active_row");
+    }else {
+      $(selector).show();
+
+    }
+  }
+}); //end reday function
 </script>
 {% endblock %}

@@ -18,14 +18,25 @@
     <!-- added d3 library -->
     <script src="https://d3js.org/d3.v6.min.js"></script>
 
+    <!-- datatable -->
+
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.24/css/jquery.dataTables.min.css">
+        <script
+            src="https://cdn.datatables.net/1.10.24/js/jquery.dataTables.min.js">
+        </script>
+
+
     <title>{% block title %}{% endblock %} - Crypto Tracker</title>
 </head>
 
 
 <body>
     {% include 'nav.html' %}
-
-    {% block content %}{% endblock %}
+    {% for message in get_flashed_messages() %}
+        <h1 class="flash">{{ message }}</h1>
+    {% endfor %}
+    {% block content %}
+    {% endblock %}
 
     <!-- jQuery first, then Popper.js, then Bootstrap JS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
