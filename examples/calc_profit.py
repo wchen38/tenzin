@@ -7,11 +7,11 @@ import pdb
 
 '''
 How to calculate crypto gains?
-    To find your total profits, multiply the sale price 
-    of your crypto by how much of the coin you bought. 
-    If you bought 2 bitcoin and the selling price is $10,000, 
-    then the total sale amount is $10,000 x 2 = $20,000. 
-    Next, subtract how much you paid for the crypto plus any fees 
+    To find your total profits, multiply the sale price
+    of your crypto by how much of the coin you bought.
+    If you bought 2 bitcoin and the selling price is $10,000,
+    then the total sale amount is $10,000 x 2 = $20,000.
+    Next, subtract how much you paid for the crypto plus any fees
     you paid to sell it.
 
 overall algorithm
@@ -28,8 +28,19 @@ overall algorithm
 public_client = cbpro.PublicClient()
 
 api_url="https://api-public.sandbox.pro.coinbase.com"
-auth_client = cbpro.AuthenticatedClient(os.environ["API_KEY"], os.environ["CLIENT_SECRET"], os.environ["PASSPHARSE"], api_url=api_url)
+
+'''
+# Assigning variables to the environment variables so that
+# they are easier to change
+# Authentication credentials
+'''
+api_key = os.environ.get('CBPRO_SANDBOX_KEY')
+api_secret = os.environ.get('CBPRO_SANDBOX_SECRET')
+passphrase = os.environ.get('CBPRO_SANDBOX_PASSPHRASE')
+
+# auth_client = cbpro.AuthenticatedClient(os.environ["API_KEY"], os.environ["CLIENT_SECRET"], os.environ["PASSPHARSE"], api_url=api_url)
 # auth_client = cbpro.AuthenticatedClient(os.environ["API_KEY"], os.environ["CLIENT_SECRET"], os.environ["PASSPHARSE"])
+auth_client = cbpro.AuthenticatedClient(api_key, api_secret, passphrase, api_url=api_url)
 
 # helping with debug the api
 def print_json(data):
@@ -67,12 +78,12 @@ def get_order_ids(acc_info):
                     orders.append(order_id)
     return orders
 '''
-# from each order id, 
+# from each order id,
 # construct my own order detail to use later to  calculate profit
 {
     "BTC_USD": {
                     "invested": 5000
-                    "coins": 0.01 
+                    "coins": 0.01
                 }
 }
 '''
