@@ -1,10 +1,31 @@
 import tenzin.crypto_lib.cbpro_api_utils as utils
 import copy
-
+'''
+possible json format in the future
+{   
+    latest_trade_id: 12345,
+    'assets": [
+        {
+            'product': 'BTC-USD',
+            'results': [
+                {
+                    'date': '2021-03-01T05:43:05.399Z': 
+                    'realized': -0.008851547094039439, 
+                    'average_profit': 0, 
+                    'average_loss': -0.008851547094039439, 
+                    'profit_probability': 0.0, 
+                    'appt': -0.008851547094039439
+                }
+            ]
+        }
+    ]
+}
+'''
 class CbproWeightedApi():
     def __init__(self, public_client, auth_client):
         self.__public_client = public_client
         self.__auth_client = auth_client
+        self.order_ids = None
         self.workbook = {}
 
     def is_valid_account(self):
@@ -18,6 +39,16 @@ class CbproWeightedApi():
 
         return is_valid
 
+    def get_latest_trade_id(self):
+        if self.order_ids is None:
+            acc_ids = utils.get_acount_ids(self.__auth_client)
+            self.order_ids = utils.get_order_ids(self.__auth_client, acc_ids)
+
+        latest_order_id = self.order_ids[0]
+        fill = next(self.__auth_client.get_fills(order_id=latest_order_id))
+        trade_id = fill["trade_id"]
+        print("trade id: {}".format(trade_id))
+        return trade_id
 
     def get_unrealized_gain(self):
         print("get unrealized gain...")
@@ -31,9 +62,9 @@ class CbproWeightedApi():
         print("get realized gain...")
         res = {}
         acc_ids = utils.get_acount_ids(self.__auth_client)
-        order_ids = utils.get_order_ids(self.__auth_client, acc_ids)
-        # utils.get_order_details(self.__auth_client, order_ids)
-        fills = utils.get_fills_order_details(self.__auth_client, order_ids)
+        self.order_ids = utils.get_order_ids(self.__auth_client, acc_ids)
+        # utils.get_order_details(self.__auth_client, self.order_ids)
+        fills = utils.get_fills_order_details(self.__auth_client, self.order_ids)
 
         for product_id, fill_orders in fills.items():
             start = 0 # start index of buy trasaction
