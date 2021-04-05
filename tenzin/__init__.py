@@ -2,12 +2,15 @@ import os
 import pdb
 
 from flask import Flask
+from flask_wtf.csrf import CsrfProtect
 from datetime import timedelta
 
+csrf = CsrfProtect()
 
 def create_app(test_config=None):
     # create and configure the app
     app = Flask(__name__, instance_relative_config=True)
+    csrf.init_app(app)
     config = os.environ['CONFIG_SETUP']
     app.config.from_object(config)
     try:

@@ -7,6 +7,7 @@
       <div class="row">
         <div class="col-md-3">
             <form method="post" action="{{ url_for('cbpro.index_post') }}" class="list-group" id="cbpro_form">
+              {{ form.csrf_token }}
               <li class="list-group-item active main-color-bg">API Information</li>
               <li class="list-group-item">
                 <label for="api_key">API Key</label>
@@ -42,7 +43,8 @@
 
 $( document ).ready(function() {
   $('#submit').click(function(){
-    if(is_input_filled("#cbpro_form", '[required]')) {
+    let is_filled = is_input_filled("#cbpro_form", '[required]');
+    if(is_filled) {
       console.log("loading......");
       $("#table_area").text("loading... (Will take about 5 to 10 mins if you have a lot of trades)");
     }
@@ -74,7 +76,7 @@ $( document ).ready(function() {
   });
 
   let flask_var = {{ flask_var|tojson }};
-  console.log(flask_var.message[0]);
+  // console.log(flask_var.message[0]);
   if (flask_var.cbpro !== null) {
     //console.log(flask_var.cbpro);
     //create a new table to display the summary portfolio
@@ -125,12 +127,17 @@ $( document ).ready(function() {
   }
 
   function is_input_filled(selector, filter) {
-    $(selector).filter(filter).each(function() {
+    let inputs = $(selector).find(filter);
+    is_filled = true;
+    inputs.each(function() {
       if($(this).val() === '') {
-        return false;
+        // return false to break out of the .each loop
+        is_filled = false
+        return is_filled;
       }
     });
-    return true;
+
+    return is_filled;
   }
 
   function togggle_table_display(product, prev_product, selector) {

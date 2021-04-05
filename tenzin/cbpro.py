@@ -1,8 +1,9 @@
 from flask import (
     Blueprint, flash, g, redirect, render_template, request, url_for, flash, session, current_app
 )
+from flask_wtf import FlaskForm
 from werkzeug.exceptions import abort
-from tenzin.crypto_lib.cbpro_weighted_api import CbproWeightedApi
+from .crypto_lib.cbpro_weighted_api import CbproWeightedApi
 import cbpro
 from datetime import timedelta
 
@@ -13,8 +14,8 @@ def index():
     error_msg = None
     cbpro_data = None
     api = None
-    # print("on refresh session: {}".format(session))
-    # print("on refresh session life time: {}".format(current_app.permanent_session_lifetime))
+
+    form = FlaskForm()
     if "data" in session:
         cbpro_data = session["data"]
 
@@ -24,9 +25,9 @@ def index():
         flash("Please enter your keys.")
 
     data = {}
-    data["message"] = ["hello", "world"]
+    # data["message"] = ["hello", "world"]
     data["cbpro"] = cbpro_data
-    return render_template('cbpro/index.html', flask_var=data)
+    return render_template('cbpro/index.html', flask_var=data, form=form)
 
 @bp.route('/', methods=["POST"])
 def index_post():
