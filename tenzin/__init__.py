@@ -2,10 +2,10 @@ import os
 import pdb
 
 from flask import Flask
-from flask_wtf.csrf import CsrfProtect
+from flask_wtf.csrf import CSRFProtect
 from datetime import timedelta
 
-csrf = CsrfProtect()
+csrf = CSRFProtect()
 
 def create_app(test_config=None):
     # create and configure the app
