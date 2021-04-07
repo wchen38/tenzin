@@ -21,6 +21,7 @@ fills["BTC-USD"].extend(fill_3)
 fills["BTC-USD"].extend(fill_4)
 fills["BTC-USD"].extend(fill_5)
 
+
 @mock.patch("tenzin.crypto_lib.cbpro_weighted_api.utils.get_fills_order_details")
 @mock.patch("tenzin.crypto_lib.cbpro_weighted_api.utils.get_acount_ids")
 @mock.patch("tenzin.crypto_lib.cbpro_weighted_api.utils.get_order_ids")
@@ -37,11 +38,12 @@ def test_get_realized_gain(mock_get_order_ids, mock_get_account_ids, mock_get_fi
     assert api.workbook["BTC-USD"]['2021-03-09T07:43:05.399Z']['appt'] == pytest.approx(0.1279, 0.1)
 
 
-@pytest.mark.parametrize("balance, fills, result",
-                            [
-                                (0.145, fill_1, 0.19),
-                                (0.467, fill_2, 0.145)
-                            ])
+@pytest.mark.parametrize(
+    "balance, fills, result",
+    [
+        (0.145, fill_1, 0.19),
+        (0.467, fill_2, 0.145)
+    ])
 def test_calc_realized_gain(balance, fills, result):
     fake_public_clent = ""
     fake_auth_client = ""

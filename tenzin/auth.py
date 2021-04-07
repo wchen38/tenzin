@@ -5,11 +5,13 @@ from . import (cbpro, oauth)
 
 bp = Blueprint('auth', __name__, url_prefix='/auth')
 
+
 @bp.route('/login')
 def login():
     google = oauth.create_client('google')
     redirect_uri = url_for('auth.authorize', _external=True)
     return google.authorize_redirect(redirect_uri)
+
 
 @bp.route('/authorize')
 def authorize():
@@ -21,6 +23,7 @@ def authorize():
     print(profile)
     # do something with the token and profile
     return redirect(url_for("cbpro.index"))
+
 
 @bp.route('/hello')
 def hello():

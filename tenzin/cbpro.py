@@ -9,6 +9,7 @@ from datetime import timedelta
 
 bp = Blueprint('cbpro', __name__)
 
+
 @bp.route('/', methods=["GET"])
 def index():
     error_msg = None
@@ -28,6 +29,7 @@ def index():
     # data["message"] = ["hello", "world"]
     data["cbpro"] = cbpro_data
     return render_template('cbpro/index.html', flask_var=data, form=form)
+
 
 @bp.route('/', methods=["POST"])
 def index_post():
@@ -53,6 +55,7 @@ def index_post():
         print(error_msg)
         flash(error_msg)
     return redirect(url_for('cbpro.index'))
+
 
 def connect_to_cbpro(key, secret, passphrase):
     public_client = cbpro.PublicClient()

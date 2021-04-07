@@ -2,7 +2,7 @@ import tenzin.crypto_lib.cbpro_api_utils as utils
 import copy
 '''
 possible json format in the future
-{   
+{  
     latest_trade_id: 12345,
     'assets": [
         {
@@ -21,6 +21,8 @@ possible json format in the future
     ]
 }
 '''
+
+
 class CbproWeightedApi():
     def __init__(self, public_client, auth_client):
         self.__public_client = public_client
@@ -67,28 +69,28 @@ class CbproWeightedApi():
         fills = utils.get_fills_order_details(self.__auth_client, self.order_ids)
 
         for product_id, fill_orders in fills.items():
-            start = 0 # start index of buy trasaction
-            crypto_balance = 0 # reset balance with a new crypto
+            start = 0  # start index of buy trasaction
+            crypto_balance = 0  # reset balance with a new crypto
             for index, fill_order in enumerate(fill_orders):
                 side = fill_order["side"]
                 # calcuate the gain/loss once client makes a sale, else added up the
                 # accumulated crypto.
                 if side == "sell":
                     utils.write_to_json(fill_orders, "fill_orders.json")
-                    expected_return = self.__calc_realized_gain(crypto_balance, fill_orders[start:index+1])
+                    expected_return = self.__calc_realized_gain(crypto_balance, fill_orders[start:index + 1])
                     if product_id not in self.workbook:
                         self.workbook[product_id] = {fill_order["created_at"]: {"realized": expected_return}}
                     else:
                         self.workbook[product_id].update({fill_order["created_at"]: {"realized": expected_return}})
-                    start = index+1 # start index of buy trasaction
-                    crypto_balance = 0 # reset balance after each sale
+                    start = index + 1  # start index of buy trasaction
+                    crypto_balance = 0  # reset balance after each sale
                 else:
                     crypto_balance += float(fill_order["size"])
-    
+
     # For reference
     # https://www.investopedia.com/terms/p/profit_loss_ratio.asp#:~:text=APPT%20is%20the%20average%20amount,profitable%20and%20seven%20were%20losing.
     # since avg_loss is a negative value to compute APPT, we would add A and B, where
-    # A is the the product of the probability win and average win 
+    # A is the the product of the probability win and average win
     # B is the product of the probability of loss and average loss
     def get_appt(self):
         print("get average profitability per trade...")
@@ -101,12 +103,12 @@ class CbproWeightedApi():
             profit_sum = 0
             profit_prob = 0
             avg_win = 0
-            
+
             loss_sum = 0
             avg_loss = 0
-            
+
             total_sales = 0
-            
+
             records_copy = copy.deepcopy(profit_records)
             for date, record in records_copy.items():
                 gain = record["realized"]

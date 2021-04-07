@@ -9,6 +9,7 @@ from datetime import timedelta
 csrf = CSRFProtect()
 oauth = OAuth()
 
+
 def create_app(test_config=None):
     # create and configure the app
     app = Flask(__name__, instance_relative_config=True)
@@ -25,7 +26,9 @@ def create_app(test_config=None):
         os.makedirs(app.instance_path)
     except OSError:
         pass
-    
+    print("=======================")
+    print("export environment: {}".format(app.config['ENVIRONMENT']))
+    print("=======================")
     GOOGLE = oauth.register(
         name='google',
         client_id=app.config["GOOGLE_CLIENT_ID"],
@@ -43,7 +46,7 @@ def create_app(test_config=None):
     @app.route('/hello')
     def hello():
         return 'Hello, World!'
-    
+
     from . import cbpro
     app.register_blueprint(cbpro.bp)
     app.add_url_rule('/', endpoint='index')

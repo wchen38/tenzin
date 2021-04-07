@@ -2,9 +2,11 @@ import time
 import os
 import json
 
+
 # helping with debug the api
 def print_json(data):
     print(json.dumps(data, indent=4, sort_keys=True))
+
 
 # helping with debug the api
 def write_to_json(data, filename):
@@ -12,6 +14,7 @@ def write_to_json(data, filename):
         os.mkdir("outputs")
     with open('outputs/{}'.format(filename), 'w') as out:
         json.dump(data, out, indent=4, sort_keys=True)
+
 
 def get_acount_ids(client):
     print("get account ids...", flush=True)
@@ -22,6 +25,7 @@ def get_acount_ids(client):
         id_info.append(account["id"])
     # print_json(id_info)
     return id_info
+
 
 # get the order ids from each account id
 def get_order_ids(client, acc_ids):
@@ -49,10 +53,9 @@ def get_order_details(client, order_ids):
         time.sleep(0.5)
         order_info = client.get_order(order_id)
         # write_to_json(order_info, "get_order.json")
-        import pdb; pdb.set_trace()
         try:
             product_id = order_info["product_id"]
-        except:
+        except Exception:
             pdb.set_trace()
         invested = float(order_info["executed_value"])
         coins = float(order_info["filled_size"])
@@ -64,6 +67,7 @@ def get_order_details(client, order_ids):
 
     print_json(orders)
     return orders
+
 
 def get_fills_order_details(client, order_ids):
     time.sleep(0.5)
