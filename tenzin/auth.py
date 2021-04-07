@@ -20,7 +20,6 @@ def authorize():
     profile = resp.json()
     print(profile)
     # do something with the token and profile
-    # return redirect('/')
     return redirect(url_for("cbpro.index"))
 
 @bp.route('/hello')
