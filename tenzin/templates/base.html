@@ -33,11 +33,13 @@
 <body>
     {% include 'nav.html' %}
 
-    {% block content %}
-        {% for message in get_flashed_messages() %}
+    <div class="container">
+    {% for message in get_flashed_messages() %}
         <h1 class="flash">{{ message }}</h1>
-        {% endfor %}
+    {% endfor %}
+    {% block content %}
     {% endblock %}
+    </div>
 
     <!-- jQuery first, then Popper.js, then Bootstrap JS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
