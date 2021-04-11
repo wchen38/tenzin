@@ -28,7 +28,7 @@ def index():
     data = {}
     # data["message"] = ["hello", "world"]
     data["cbpro"] = cbpro_data
-    return render_template('cbpro/index.html', flask_var=data, form=form)
+    return render_template('index.html', flask_var=data, form=form)
 
 
 @bp.route('/', methods=["POST"])
