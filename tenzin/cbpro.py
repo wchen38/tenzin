@@ -2,6 +2,7 @@ from flask import (
     Blueprint, flash, g, redirect, render_template, request, url_for, flash, session, current_app
 )
 from flask_wtf import FlaskForm
+from flask_login import current_user
 from werkzeug.exceptions import abort
 from .crypto_lib.cbpro_weighted_api import CbproWeightedApi
 import cbpro
@@ -24,7 +25,8 @@ def index():
         # cbpro_data.update({'ETH-USD': {'2021-03-01T05:44:05.399Z': {'realized': -0.008851547094039439, 'average_profit': 0, 'average_loss': -0.008851547094039439, 'profit_probability': 0.0, 'appt': -0.008851547094039439}, '2021-03-14T20:42:45.37Z': {'realized': 0.23089632829473325, 'average_profit': 0.23089632829473325, 'average_loss': -0.008851547094039439, 'profit_probability': 0.5, 'appt': 0.11102239060034691}, '2021-03-17T07:05:42.012Z': {'realized': 0.00031244198717773333, 'average_profit': 0.11560438514095549, 'average_loss': -0.008851547094039439, 'profit_probability': 0.6666666666666666, 'appt': 0.07411907439595718}, '2021-03-20T21:28:41.367Z': {'realized': 0.0368616774337646, 'average_profit': 0.08935681590522519, 'average_loss': -0.008851547094039439, 'profit_probability': 0.75, 'appt': 0.06480472515540903}}})
     else:
         flash("Please enter your keys.")
-
+    if current_user.is_authenticated:
+        flash("you have logged in!")
     data = {}
     # data["message"] = ["hello", "world"]
     data["cbpro"] = cbpro_data

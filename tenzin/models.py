@@ -5,6 +5,7 @@ from . import login_manager
 
 @login_manager.user_loader
 def load_user(user_id):
+    print("======> {}".format(user_id))
     return User.objects(pk=user_id).first()
 
 

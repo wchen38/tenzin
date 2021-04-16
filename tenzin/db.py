@@ -8,9 +8,13 @@ def get_db():
     if 'db' not in g:
         g.db = connect(
             current_app.config['DB_NAME'],
+            host='127.0.0.1',
+            port=27017,
+            alias='default'
             # username=current_app.config['DB_USERNAME'],
             # password=current_app.config['DB_PASSWORD'],
             # authentication_source='admin'
+
         )
     return g.db
 
