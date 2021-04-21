@@ -23,18 +23,19 @@ def authorize():
     resp = google.get('userinfo')
     resp.raise_for_status()
     profile = resp.json()
+
+    if not profile['verified_email']:
+        return "User email not available or not verified by Google.", 400
+
     print(profile)
-    print(profile['email'])
     db = get_db()
     existing_user = User.objects(email=profile['email']).first()
-    print("token: {}".format(token))
-    session.permanent = True
+    session.permanent = True  # session is 15 mins defined in the config file
     # session["access_token"] = token
 
     if existing_user is None:
         existing_user = User(email=profile['email']).save()
     login_user(existing_user)
-    # do something with the token and profile
     return redirect(url_for("cbpro.index"))
 
 

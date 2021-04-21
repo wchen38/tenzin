@@ -2,18 +2,18 @@ import tenzin.crypto_lib.cbpro_api_utils as utils
 import copy
 '''
 possible json format in the future
-{  
+{
     latest_trade_id: 12345,
     'assets": [
         {
             'product': 'BTC-USD',
             'results': [
                 {
-                    'date': '2021-03-01T05:43:05.399Z': 
-                    'realized': -0.008851547094039439, 
-                    'average_profit': 0, 
-                    'average_loss': -0.008851547094039439, 
-                    'profit_probability': 0.0, 
+                    'date': '2021-03-01T05:43:05.399Z',
+                    'realized': -0.008851547094039439,
+                    'average_profit': 0,
+                    'average_loss': -0.008851547094039439,
+                    'profit_probability': 0.0,
                     'appt': -0.008851547094039439
                 }
             ]
@@ -78,10 +78,11 @@ class CbproWeightedApi():
                 if side == "sell":
                     utils.write_to_json(fill_orders, "fill_orders.json")
                     expected_return = self.__calc_realized_gain(crypto_balance, fill_orders[start:index + 1])
+                    created_at = fill_order["created_at"].split(".")[0]
                     if product_id not in self.workbook:
-                        self.workbook[product_id] = {fill_order["created_at"]: {"realized": expected_return}}
+                        self.workbook[product_id] = {created_at: {"realized": expected_return}}
                     else:
-                        self.workbook[product_id].update({fill_order["created_at"]: {"realized": expected_return}})
+                        self.workbook[product_id].update({created_at: {"realized": expected_return}})
                     start = index + 1  # start index of buy trasaction
                     crypto_balance = 0  # reset balance after each sale
                 else:
@@ -143,14 +144,14 @@ class CbproWeightedApi():
             print("Error: unhandled key in fill order: {}".format(sell_info))
 
         for fill_order in sub_fills[:-1]:
-            size = float(fill_order["size"]) # the amount of crypto you purchased or sold
+            size = float(fill_order["size"])  # the amount of crypto you purchased or sold
             buy_fee = float(fill_order["fee"])
             try:
-                buy_amount = float(fill_order["usd_volume"]) + buy_fee # amount of USD you spend to buy crypto
+                buy_amount = float(fill_order["usd_volume"]) + buy_fee  # amount of USD you spend to buy crypto
             except Exception:
                 print("Error: unhandled key in fill order: {}".format(fill_order))
             weight = size / crypto_balance
-            expected_return = size * sell_price / buy_amount - 1 # percentage of individual return
+            expected_return = size * sell_price / buy_amount - 1  # percentage of individual return
             total_expected_return += (weight * expected_return)
 
         fee_percentage = sell_fee / sell_amount

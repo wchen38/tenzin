@@ -5,6 +5,7 @@ from flask_wtf import FlaskForm
 from flask_login import current_user
 from werkzeug.exceptions import abort
 from .crypto_lib.cbpro_weighted_api import CbproWeightedApi
+from .models import User, Portfolio
 import cbpro
 from datetime import timedelta
 
@@ -51,11 +52,15 @@ def index_post():
         api.get_latest_trade_id()
         cbpro_data = api.workbook
         session["data"] = cbpro_data
+        if current_user.is_authenticated:
+            user = User.objects(email=current_user.email)[0]
+            p = Portfolio(appt=cbpro_data, user=user).save()
     else:
         session.pop("data", None)
         error_msg = "Invalid API Key"
         print(error_msg)
         flash(error_msg)
+
     return redirect(url_for('cbpro.index'))
 
 
