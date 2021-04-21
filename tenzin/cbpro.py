@@ -19,15 +19,20 @@ def index():
     api = None
 
     form = FlaskForm()
-    if "data" in session:
-        cbpro_data = session["data"]
 
+    if current_user.is_authenticated:
+        flash("you have logged in!")
+        cbpro_data = load_from_session()
+        if cbpro_data is None:
+            cbpro_data = load_from_db()
+        if cbpro_data is None:
+            flash("Please enter your keys.")
+    elif "data" in session:
+        cbpro_data = session["data"]
         # cbpro_data = {'BTC-USD': {'2021-03-01T05:43:05.399Z': {'realized': -0.008851547094039439, 'average_profit': 0, 'average_loss': -0.008851547094039439, 'profit_probability': 0.0, 'appt': -0.008851547094039439}, '2021-03-14T20:41:45.37Z': {'realized': 0.23089632829473325, 'average_profit': 0.23089632829473325, 'average_loss': -0.008851547094039439, 'profit_probability': 0.5, 'appt': 0.11102239060034691}, '2021-03-17T07:05:41.012Z': {'realized': 0.00031244198717773333, 'average_profit': 0.11560438514095549, 'average_loss': -0.008851547094039439, 'profit_probability': 0.6666666666666666, 'appt': 0.07411907439595718}, '2021-03-20T21:28:40.367Z': {'realized': 0.0368616774337646, 'average_profit': 0.08935681590522519, 'average_loss': -0.008851547094039439, 'profit_probability': 0.75, 'appt': 0.06480472515540903}}}
         # cbpro_data.update({'ETH-USD': {'2021-03-01T05:44:05.399Z': {'realized': -0.008851547094039439, 'average_profit': 0, 'average_loss': -0.008851547094039439, 'profit_probability': 0.0, 'appt': -0.008851547094039439}, '2021-03-14T20:42:45.37Z': {'realized': 0.23089632829473325, 'average_profit': 0.23089632829473325, 'average_loss': -0.008851547094039439, 'profit_probability': 0.5, 'appt': 0.11102239060034691}, '2021-03-17T07:05:42.012Z': {'realized': 0.00031244198717773333, 'average_profit': 0.11560438514095549, 'average_loss': -0.008851547094039439, 'profit_probability': 0.6666666666666666, 'appt': 0.07411907439595718}, '2021-03-20T21:28:41.367Z': {'realized': 0.0368616774337646, 'average_profit': 0.08935681590522519, 'average_loss': -0.008851547094039439, 'profit_probability': 0.75, 'appt': 0.06480472515540903}}})
     else:
         flash("Please enter your keys.")
-    if current_user.is_authenticated:
-        flash("you have logged in!")
     data = {}
     # data["message"] = ["hello", "world"]
     data["cbpro"] = cbpro_data
@@ -71,4 +76,23 @@ def connect_to_cbpro(key, secret, passphrase):
     api = CbproWeightedApi(public_client, auth_client)
     if api.is_valid_account():
         return api
+    return None
+
+
+def load_from_session():
+    if "data" in session:
+        return session["data"]
+    return None
+
+
+def load_from_db():
+    user = User.objects(email=current_user.email)[0]
+    # user logged in, but haven't enter their API keys yet,
+    # therefore, the Portfolio in database is empty.
+    try:
+        p = Portfolio.objects(user=user)[0]
+        if len(p.appt) != 0:
+            return p.appt
+    except IndexError:
+        pass
     return None

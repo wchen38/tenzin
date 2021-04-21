@@ -21,4 +21,3 @@ class Portfolio(Document):
 
     def __repr__(self):
         return f"Portfolio('{self.user.email}')"
-
