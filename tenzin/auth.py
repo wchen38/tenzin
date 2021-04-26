@@ -29,12 +29,12 @@ def authorize():
 
     print(profile)
     db = get_db()
-    existing_user = User.objects(email=profile['email']).first()
+    existing_user = User.objects(user_id=profile['id']).first()
     session.permanent = True  # session is 15 mins defined in the config file
     # session["access_token"] = token
 
     if existing_user is None:
-        existing_user = User(email=profile['email']).save()
+        existing_user = User(user_id=profile['id'], email=profile['email']).save()
     login_user(existing_user)
     return redirect(url_for("cbpro.index"))
 

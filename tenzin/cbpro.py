@@ -45,26 +45,38 @@ def index_post():
     secret = request.form['client_secret']
     passphrase = request.form['passphrase']
 
-    # save the cbpro info to session
-    # delete those values if they enter the wrong values again
     api = connect_to_cbpro(key, secret, passphrase)
-    if api:
-        session.permanent = True
-        # current_app.permanent_session_lifetime = timedelta(seconds=5)
-        print("setting session life time: {}".format(current_app.permanent_session_lifetime))
-        api.get_realized_gain()
-        api.get_appt()
-        api.get_latest_trade_id()
-        cbpro_data = api.workbook
-        session["data"] = cbpro_data
-        if current_user.is_authenticated:
-            user = User.objects(email=current_user.email)[0]
-            p = Portfolio(appt=cbpro_data, user=user).save()
-    else:
+    if api is None:
         session.pop("data", None)
         error_msg = "Invalid API Key"
         print(error_msg)
         flash(error_msg)
+
+        return redirect(url_for('cbpro.index'))
+
+    session.permanent = True
+    if current_user.is_authenticated:
+        user = User.objects(user_id=current_user.user_id)[0]
+        p_list = Portfolio.objects(user=user)
+        if len(p_list) == 0:
+            cbpro_data, latest_trade_id_map = make_call_to_all_apis(api)
+            Portfolio(user=user, appt=cbpro_data, latest_trade_id_map=latest_trade_id_map).save()
+        else:
+            p = p_list[0]
+            latest_cbpro_data, latest_trade_id_map = make_call_to_all_apis(api, latest_trade_id_map=p.latest_trade_id_map)
+            # latest_cbpro_data = {"BTC-USD": {"hello": "world"}, "ETH-USD": {"hello": "eth"}}
+            for product_id, info in latest_cbpro_data.items():
+                if product_id in p.appt.keys():
+                    p.appt[product_id].update(info)
+                else:
+                    p.appt[product_id] = info
+            cbpro_data = p.appt
+            Portfolio.objects(user=user).update_one(appt=cbpro_data)
+            Portfolio.objects(user=user).update_one(latest_trade_id_map=latest_trade_id_map)
+    else:
+        cbpro_data, _ = make_call_to_all_apis(api)
+
+    session["data"] = cbpro_data
 
     return redirect(url_for('cbpro.index'))
 
@@ -79,6 +91,12 @@ def connect_to_cbpro(key, secret, passphrase):
     return None
 
 
+def make_call_to_all_apis(api, latest_trade_id_map=None):
+    api.get_realized_gain(latest_trade_id_map=latest_trade_id_map)
+    api.get_appt()
+    return api.workbook, api.latest_fills_map
+
+
 def load_from_session():
     if "data" in session:
         return session["data"]
@@ -86,7 +104,7 @@ def load_from_session():
 
 
 def load_from_db():
-    user = User.objects(email=current_user.email)[0]
+    user = User.objects(user_id=current_user.user_id)[0]
     # user logged in, but haven't enter their API keys yet,
     # therefore, the Portfolio in database is empty.
     try:

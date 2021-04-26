@@ -32,7 +32,7 @@ def get_order_ids(client, acc_ids):
     print("get order ids...", flush=True)
     orders = []
     for acc_id in acc_ids:
-        time.sleep(1)
+        time.sleep(0.5)
         his = client.get_account_history(acc_id)
         his_list = list(his)
         invested = 0
@@ -77,10 +77,22 @@ def get_fills_order_details(client, order_ids):
         # btc_fills = client.get_fills(order_id="5d98cd72-ee60-454d-acd1-2276d11983fb") #default portfolio
         # btc_fills = client.get_fills(order_id="9cb91101-2ddf-4c71-9629-e6661f9ebb17") #tenzin testing portfolio
         fills = list(client.get_fills(order_id=order_id))
-        product_id = fills[0]["product_id"]
-        if product_id not in fills_map:
-            fills_map[product_id] = []
-        fills_map[product_id].extend(fills)
+        if "product_id" in fills[0]:
+            product_id = fills[0]["product_id"]
+            if product_id not in fills_map:
+                fills_map[product_id] = []
+            fills_map[product_id].extend(fills)
     # write_to_json(fills_map, "get_fills.json")
 
+    return fills_map
+
+
+def get_latest_fills_order_details(client, latest_trade_id_map):
+    fills_map = {}
+    for product_id, trade_id in latest_trade_id_map.items():
+        fills = list(client.get_fills(before=trade_id, product_id=product_id))
+        if len(fills) != 0:
+            if product_id not in fills_map:
+                fills_map[product_id] = []
+            fills_map[product_id].extend(fills)
     return fills_map

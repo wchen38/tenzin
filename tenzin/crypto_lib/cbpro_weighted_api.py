@@ -29,6 +29,7 @@ class CbproWeightedApi():
         self.__auth_client = auth_client
         self.order_ids = None
         self.workbook = {}
+        self.latest_fills_map = {}
 
     def is_valid_account(self):
         is_valid = True
@@ -42,9 +43,9 @@ class CbproWeightedApi():
         return is_valid
 
     def get_latest_trade_id(self):
-        if self.order_ids is None:
-            acc_ids = utils.get_acount_ids(self.__auth_client)
-            self.order_ids = utils.get_order_ids(self.__auth_client, acc_ids)
+        # if self.order_ids is None:
+        acc_ids = utils.get_acount_ids(self.__auth_client)
+        self.order_ids = utils.get_order_ids(self.__auth_client, acc_ids)
 
         latest_order_id = self.order_ids[0]
         fill = next(self.__auth_client.get_fills(order_id=latest_order_id))
@@ -60,19 +61,27 @@ class CbproWeightedApi():
             "BTC_USD": {date: expected return} 
         }
     '''
-    def get_realized_gain(self):
+    def get_realized_gain(self, latest_trade_id_map=None):
         print("get realized gain...")
         res = {}
-        acc_ids = utils.get_acount_ids(self.__auth_client)
-        self.order_ids = utils.get_order_ids(self.__auth_client, acc_ids)
-        # utils.get_order_details(self.__auth_client, self.order_ids)
-        fills = utils.get_fills_order_details(self.__auth_client, self.order_ids)
+        if latest_trade_id_map is None:
+            acc_ids = utils.get_acount_ids(self.__auth_client)
+            self.order_ids = utils.get_order_ids(self.__auth_client, acc_ids)
+            fills = utils.get_fills_order_details(self.__auth_client, self.order_ids)
+        else:
+            # utils.get_order_details(self.__auth_client, self.order_ids)
+            fills = utils.get_latest_fills_order_details(self.__auth_client, latest_trade_id_map)
 
         for product_id, fill_orders in fills.items():
             start = 0  # start index of buy trasaction
             crypto_balance = 0  # reset balance with a new crypto
             for index, fill_order in enumerate(fill_orders):
                 side = fill_order["side"]
+                trade_id = fill_order['trade_id']
+                if product_id not in self.latest_fills_map:
+                    self.latest_fills_map[product_id] = trade_id
+                else:
+                    self.latest_fills_map[product_id] = max(self.latest_fills_map[product_id], trade_id)
                 # calcuate the gain/loss once client makes a sale, else added up the
                 # accumulated crypto.
                 if side == "sell":
