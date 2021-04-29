@@ -1,5 +1,6 @@
 from flask import (
-    Blueprint, flash, g, redirect, render_template, request, url_for, flash, session, current_app
+    Blueprint, flash, g, redirect, render_template, request, url_for, flash,
+    session, current_app
 )
 from flask_wtf import FlaskForm
 from flask_login import current_user
@@ -60,10 +61,17 @@ def index_post():
         p_list = Portfolio.objects(user=user)
         if len(p_list) == 0:
             cbpro_data, latest_trade_id_map = make_call_to_all_apis(api)
-            Portfolio(user=user, appt=cbpro_data, latest_trade_id_map=latest_trade_id_map).save()
+            Portfolio(
+                user=user, 
+                appt=cbpro_data,
+                latest_trade_id_map=latest_trade_id_map
+            ).save()
         else:
             p = p_list[0]
-            latest_cbpro_data, latest_trade_id_map = make_call_to_all_apis(api, latest_trade_id_map=p.latest_trade_id_map)
+            latest_cbpro_data, latest_trade_id_map = make_call_to_all_apis(
+                api,
+                latest_trade_id_map=p.latest_trade_id_map
+            )
             # latest_cbpro_data = {"BTC-USD": {"hello": "world"}, "ETH-USD": {"hello": "eth"}}
             for product_id, info in latest_cbpro_data.items():
                 if product_id in p.appt.keys():
@@ -72,7 +80,9 @@ def index_post():
                     p.appt[product_id] = info
             cbpro_data = p.appt
             Portfolio.objects(user=user).update_one(appt=cbpro_data)
-            Portfolio.objects(user=user).update_one(latest_trade_id_map=latest_trade_id_map)
+            Portfolio.objects(user=user).update_one(
+                latest_trade_id_map=latest_trade_id_map
+            )
     else:
         cbpro_data, _ = make_call_to_all_apis(api)
 
@@ -84,7 +94,12 @@ def index_post():
 def connect_to_cbpro(key, secret, passphrase):
     public_client = cbpro.PublicClient()
     api_url = current_app.config["CBPRO_API_URL"]
-    auth_client = cbpro.AuthenticatedClient(key, secret, passphrase, api_url=api_url)
+    auth_client = cbpro.AuthenticatedClient(
+        key,
+        secret,
+        passphrase,
+        api_url=api_url
+    )
     api = CbproWeightedApi(public_client, auth_client)
     if api.is_valid_account():
         return api

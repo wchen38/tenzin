@@ -22,10 +22,16 @@ fills["BTC-USD"].extend(fill_4)
 fills["BTC-USD"].extend(fill_5)
 
 
-@mock.patch("tenzin.crypto_lib.cbpro_weighted_api.utils.get_fills_order_details")
+@mock.patch(
+    "tenzin.crypto_lib.cbpro_weighted_api.utils.get_fills_order_details"
+)
 @mock.patch("tenzin.crypto_lib.cbpro_weighted_api.utils.get_acount_ids")
 @mock.patch("tenzin.crypto_lib.cbpro_weighted_api.utils.get_order_ids")
-def test_get_realized_gain(mock_get_order_ids, mock_get_account_ids, mock_get_fills):
+def test_get_realized_gain(
+    mock_get_order_ids,
+    mock_get_account_ids,
+    mock_get_fills
+):
     mock_get_fills.return_value = fills
     mock_get_account_ids = ""
     mock_get_order_ids = ""
@@ -51,3 +57,17 @@ def test_calc_realized_gain(balance, fills, result):
 
     res = api._CbproWeightedApi__calc_realized_gain(balance, fills)
     assert res == pytest.approx(result, 0.1)
+
+@pytest.mark.parametrize(
+    "account_ids, result",
+    [
+        ([], True),
+        ({}, False)
+    ]
+)
+@mock.patch("tenzin.crypto_lib.cbpro_weighted_api.utils.get_acount_ids")
+def test_is_valid_account(mock_get_account_id, account_ids, result):
+    mock_get_account_id.return_value = account_ids
+    api = CbproWeightedApi("", "")
+    is_valid = api.is_valid_account()
+    assert is_valid is result
