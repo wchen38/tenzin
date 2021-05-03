@@ -2,18 +2,18 @@ import tenzin.crypto_lib.cbpro_api_utils as utils
 import copy
 '''
 possible json format in the future
-{   
+{
     latest_trade_id: 12345,
     'assets": [
         {
             'product': 'BTC-USD',
             'results': [
                 {
-                    'date': '2021-03-01T05:43:05.399Z': 
-                    'realized': -0.008851547094039439, 
-                    'average_profit': 0, 
-                    'average_loss': -0.008851547094039439, 
-                    'profit_probability': 0.0, 
+                    'date': '2021-03-01T05:43:05.399Z',
+                    'realized': -0.008851547094039439,
+                    'average_profit': 0,
+                    'average_loss': -0.008851547094039439,
+                    'profit_probability': 0.0,
                     'appt': -0.008851547094039439
                 }
             ]
@@ -21,12 +21,15 @@ possible json format in the future
     ]
 }
 '''
+
+
 class CbproWeightedApi():
     def __init__(self, public_client, auth_client):
         self.__public_client = public_client
         self.__auth_client = auth_client
         self.order_ids = None
         self.workbook = {}
+        self.latest_fills_map = {}
 
     def is_valid_account(self):
         is_valid = True
@@ -40,9 +43,9 @@ class CbproWeightedApi():
         return is_valid
 
     def get_latest_trade_id(self):
-        if self.order_ids is None:
-            acc_ids = utils.get_acount_ids(self.__auth_client)
-            self.order_ids = utils.get_order_ids(self.__auth_client, acc_ids)
+        # if self.order_ids is None:
+        acc_ids = utils.get_acount_ids(self.__auth_client)
+        self.order_ids = utils.get_order_ids(self.__auth_client, acc_ids)
 
         latest_order_id = self.order_ids[0]
         fill = next(self.__auth_client.get_fills(order_id=latest_order_id))
@@ -55,40 +58,69 @@ class CbproWeightedApi():
 
     '''
         {
-            "BTC_USD": {date: expected return} 
+            "BTC_USD": {date: expected return}
         }
     '''
-    def get_realized_gain(self):
+    def get_realized_gain(self, latest_trade_id_map=None):
         print("get realized gain...")
         res = {}
-        acc_ids = utils.get_acount_ids(self.__auth_client)
-        self.order_ids = utils.get_order_ids(self.__auth_client, acc_ids)
-        # utils.get_order_details(self.__auth_client, self.order_ids)
-        fills = utils.get_fills_order_details(self.__auth_client, self.order_ids)
+        if latest_trade_id_map is None:
+            acc_ids = utils.get_acount_ids(self.__auth_client)
+            self.order_ids = utils.get_order_ids(self.__auth_client, acc_ids)
+            fills = utils.get_fills_order_details(
+                self.__auth_client, self.order_ids
+            )
+        else:
+            # utils.get_order_details(self.__auth_client, self.order_ids)
+            fills = utils.get_latest_fills_order_details(
+                self.__auth_client,
+                latest_trade_id_map
+            )
 
         for product_id, fill_orders in fills.items():
-            start = 0 # start index of buy trasaction
-            crypto_balance = 0 # reset balance with a new crypto
+            start = 0  # start index of buy trasaction
+            crypto_balance = 0  # reset balance with a new crypto
             for index, fill_order in enumerate(fill_orders):
                 side = fill_order["side"]
-                # calcuate the gain/loss once client makes a sale, else added up the
-                # accumulated crypto.
+                trade_id = fill_order['trade_id']
+                if product_id not in self.latest_fills_map:
+                    self.latest_fills_map[product_id] = trade_id
+                else:
+                    self.latest_fills_map[product_id] = max(
+                        self.latest_fills_map[product_id], trade_id
+                    )
+                # calcuate the gain/loss once client makes a sale, else added
+                # up the accumulated crypto.
                 if side == "sell":
                     utils.write_to_json(fill_orders, "fill_orders.json")
-                    expected_return = self.__calc_realized_gain(crypto_balance, fill_orders[start:index+1])
+                    expected_return = self.__calc_realized_gain(
+                        crypto_balance,
+                        fill_orders[start:index + 1]
+                    )
+                    created_at = fill_order["created_at"].split(".")[0]
                     if product_id not in self.workbook:
-                        self.workbook[product_id] = {fill_order["created_at"]: {"realized": expected_return}}
+                        self.workbook[product_id] = {
+                            created_at: {
+                                "realized": expected_return
+                            }
+                        }
                     else:
-                        self.workbook[product_id].update({fill_order["created_at"]: {"realized": expected_return}})
-                    start = index+1 # start index of buy trasaction
-                    crypto_balance = 0 # reset balance after each sale
+                        self.workbook[product_id].update(
+                            {
+                                created_at: {
+                                    "realized": expected_return
+                                }
+                            }
+                        )
+                    start = index + 1  # start index of buy trasaction
+                    crypto_balance = 0  # reset balance after each sale
                 else:
                     crypto_balance += float(fill_order["size"])
-    
+
     # For reference
     # https://www.investopedia.com/terms/p/profit_loss_ratio.asp#:~:text=APPT%20is%20the%20average%20amount,profitable%20and%20seven%20were%20losing.
-    # since avg_loss is a negative value to compute APPT, we would add A and B, where
-    # A is the the product of the probability win and average win 
+    # since avg_loss is a negative value to compute APPT, we would add A and B,
+    # where A is the the product of the probability win and average win
     # B is the product of the probability of loss and average loss
     def get_appt(self):
         print("get average profitability per trade...")
@@ -101,12 +133,12 @@ class CbproWeightedApi():
             profit_sum = 0
             profit_prob = 0
             avg_win = 0
-            
+
             loss_sum = 0
             avg_loss = 0
-            
+
             total_sales = 0
-            
+
             records_copy = copy.deepcopy(profit_records)
             for date, record in records_copy.items():
                 gain = record["realized"]
@@ -123,7 +155,8 @@ class CbproWeightedApi():
                 profit_records[date]["average_loss"] = avg_loss
                 profit_prob = num_profit / total_sales
                 profit_records[date]["profit_probability"] = profit_prob
-                profit_records[date]["appt"] = avg_win * profit_prob + avg_loss * (1 - profit_prob)
+                profit_records[date]["appt"] = avg_win * profit_prob \
+                    + avg_loss * (1 - profit_prob)
         print(self.workbook)
 
     def get_crypto_tax(self):
@@ -141,14 +174,19 @@ class CbproWeightedApi():
             print("Error: unhandled key in fill order: {}".format(sell_info))
 
         for fill_order in sub_fills[:-1]:
-            size = float(fill_order["size"]) # the amount of crypto you purchased or sold
+            # the amount of crypto you purchased or sold
+            size = float(fill_order["size"])
             buy_fee = float(fill_order["fee"])
             try:
-                buy_amount = float(fill_order["usd_volume"]) + buy_fee # amount of USD you spend to buy crypto
+                # amount of USD you spend to buy crypto
+                buy_amount = float(fill_order["usd_volume"]) + buy_fee
             except Exception:
-                print("Error: unhandled key in fill order: {}".format(fill_order))
+                print(
+                    "Error: unhandled key in fill order: {}".format(fill_order)
+                )
             weight = size / crypto_balance
-            expected_return = size * sell_price / buy_amount - 1 # percentage of individual return
+            # percentage of individual return
+            expected_return = size * sell_price / buy_amount - 1
             total_expected_return += (weight * expected_return)
 
         fee_percentage = sell_fee / sell_amount

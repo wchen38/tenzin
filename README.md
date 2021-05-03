@@ -35,14 +35,14 @@ py.test -v
 ```
 To measure the code coverage of your tests, use the coverage command to run pytest instead of running it directly.:
 ```
-coverage run -m pytest
+coverage run --omit */site-packages/* -m pytest
 ```
 To view a simple coverage report in the terminal
 ```
-coverage report
+coverage report --omit */site-packages/*
 ```
 An HTML report allows you to see which lines were covered in each file:
 ```
-coverage html
+coverage html--omit */site-packages/* 
 ```
 
