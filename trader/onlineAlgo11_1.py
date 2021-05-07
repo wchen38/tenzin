@@ -29,7 +29,7 @@ class MyWebsocketClient(cbpro.WebsocketClient):
         print("WS datafeed closed, attempting restart")
         wsClient.start()
         time.sleep(60)      # give time for wsClient to start datafeed
-        dataframe = dataframe.append(wsClient.data*129600, ignore_index=True) # pre-load dataframe
+        dataframe = dataframe.append([wsClient.data]*259200, ignore_index=True) # pre-load dataframe
         trading_mwe(symbol, amount, position, bar, min_bars)
 
 # callback function - algo trading minimal working example
