@@ -26,6 +26,8 @@ class MyWebsocketClient(cbpro.WebsocketClient):
         self.data = msg
 
     def on_close(self):
+        # global variables
+        global wsClient, df, dataframe, algorithm
         print("WS datafeed closed, attempting restart")
         wsClient.start()
         time.sleep(60)      # give time for wsClient to start datafeed
@@ -37,6 +39,8 @@ class MyWebsocketClient(cbpro.WebsocketClient):
 # https://en.wikipedia.org/wiki/Minimal_working_example
 
 def trading_mwe(symbol, amount, position, bar, min_bars):
+    # global variables
+    global wsClient, df, dataframe, algorithm
     # default == trading
     trading = 'Y'
     print('Trading starting in: Min Bars:{0} x Bar Length:{1}'.format(min_bars, bar))
@@ -110,9 +114,7 @@ def trading_mwe(symbol, amount, position, bar, min_bars):
 
 
 if __name__ == '__main__':
-    # global variables
-    global wsClient, df, dataframe, algorithm
-
+ 
     # loads the persisted trading algorithm object
     algorithm = pd.read_pickle('algorithmBTC.pkl')
 
