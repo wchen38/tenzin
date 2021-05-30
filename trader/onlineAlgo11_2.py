@@ -31,7 +31,10 @@ class MyWebsocketClient(cbpro.WebsocketClient):
         print("WS datafeed closed, attempting restart")
         wsClient.start()
         time.sleep(60)      # give time for wsClient to start datafeed
-        dataframe = dataframe.append([wsClient.data]*259200, ignore_index=True) # pre-load dataframe
+        if os.path.exists('btc_price_series.csv'):
+                dataframe = pd.read_csv('btc_price_series.csv')
+        else:
+            dataframe = dataframe.append([wsClient.data]*2, ignore_index=True) 
         trading_mwe(symbol, amount, position, bar, min_bars)
         return
 
@@ -43,22 +46,25 @@ def trading_mwe(symbol, amount, position, bar, min_bars):
     global wsClient, df, dataframe, algorithm
     # default == trading
     trading = 'Y'
-    print('Trading starting in: Min Bars:{0} x Bar Length:{1}'.format(min_bars, bar))
-
+    print('Trading starting in: Min Bars:{0} x Current Bars:{1}'.format(min_bars, round(len(dataframe)/21600)))
+    
     if trading == 'Y':
         while wsClient.data:
             tick = wsClient.data
             # resampling of the tick data
             try:
                 dataframe = dataframe.append(tick, ignore_index=True)
-                dataframe.index = pd.to_datetime(dataframe['time'], infer_datetime_format=True)
+                dataframe.to_csv('btc_price_series.csv')
+                dataframe=pd.read_csv('btc_price_series.csv', usecols=['time', 'price'])
+                dataframe.index = pd.to_datetime(dataframe['time'])
                 df = dataframe.resample(bar, label='right').last().ffill()
             except (TypeError, ValueError, KeyError):
-                dataframe.index = pd.to_datetime(dataframe['time'], infer_datetime_format=True)
+                dataframe=pd.read_csv('btc_price_series.csv', usecols=['time', 'price'])
+                dataframe.index = pd.to_datetime(dataframe['time'])
                 df = dataframe.resample(bar, label='right').last().ffill()
             except RuntimeError:
                 return
-
+            
             if len(df) > min_bars:
                 min_bars = len(df)
                 # output to screen
@@ -95,6 +101,9 @@ def trading_mwe(symbol, amount, position, bar, min_bars):
                     print('SHORT')
 
                 else: # no trade
+                    auth_client.place_market_order(product_id = symbol,\
+                    side = 'sell', funds = 0 + position * 0)
+                    position = 0
                     print('no trade placed')
 
                 print('****END OF CYCLE****')
@@ -108,13 +117,11 @@ def trading_mwe(symbol, amount, position, bar, min_bars):
                 auth_client.cancel_all(product_id=symbol)
                 trading = 'n'
 
-            time.sleep(3600)
-
         return
 
 
 if __name__ == '__main__':
- 
+    
     # loads the persisted trading algorithm object
     algorithm = pd.read_pickle('algorithmBTC.pkl')
 
@@ -140,10 +147,10 @@ if __name__ == '__main__':
     '''
 
     symbol = 'BTC-USD'
-    bar = '259200s'      # 15s is for testing; reset to trading frequency
+    bar = '21600s'      # 15s is for testing; reset to trading frequency
     amount = 25.17      # amount to be traded in $USD - $50 minimum
     position = 0        # beginning, neutral, position
-    lags = 5            # number of lags for features data
+    lags = 13           # number of lags for features data
 
     # minumum number of resampled bars required for the first predicted value (& first trade)
     min_bars = lags + 1
@@ -161,7 +168,10 @@ if __name__ == '__main__':
             # start trading
             wsClient.start()
             time.sleep(60)      # give time for wsClient to start datafeed
-            dataframe = dataframe.append([wsClient.data]*1399680, ignore_index=True) # pre-load dataframe
+            if os.path.exists('btc_price_series.csv'):
+                dataframe = pd.read_csv('btc_price_series.csv')
+            else:
+                dataframe = dataframe.append([wsClient.data]*2, ignore_index=True)
             trading_mwe(symbol, amount, position, bar, min_bars)
 
     except KeyboardInterrupt:
@@ -171,11 +181,17 @@ if __name__ == '__main__':
         print('Error - restarting program')
         wsClient.start()
         time.sleep(60)      # give time for wsClient to start datafeed
-        dataframe = dataframe.append([wsClient.data]*1399680, ignore_index=True) # pre-load dataframe
+        if os.path.exists('btc_price_series.csv'):
+                dataframe = pd.read_csv('btc_price_series.csv')
+        else:
+            dataframe = dataframe.append([wsClient.data]*2, ignore_index=True)
         trading_mwe(symbol, amount, position, bar, min_bars)
     else:
         print('Restarting program')
         wsClient.start()
         time.sleep(60)      # give time for wsClient to start datafeed
-        dataframe = dataframe.append([wsClient.data]*1399680, ignore_index=True) # pre-load dataframe
+        if os.path.exists('btc_price_series.csv'):
+                dataframe = pd.read_csv('btc_price_series.csv')
+        else:
+            dataframe = dataframe.append([wsClient.data]*2, ignore_index=True)
         trading_mwe(symbol, amount, position, bar, min_bars)
